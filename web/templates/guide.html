@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>命名规范手册 - 刷题管理系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.6; }
+        
+        .header { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); color: white; padding: 2rem 2rem 1.5rem; }
+        .header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.3rem; }
+        .header-actions { position: absolute; top: 1.5rem; right: 2rem; }
+        .btn { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; text-decoration: none; display: inline-block; }
+        .btn:hover { background: rgba(255,255,255,0.25); }
+        
+        .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+        
+        .intro { background: #1e293b; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid #334155; }
+        .intro h2 { color: #a78bfa; margin-bottom: 0.5rem; }
+        .intro p { color: #94a3b8; }
+        
+        .section { background: #1e293b; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #334155; }
+        .section h3 { color: #818cf8; font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+        th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #334155; }
+        th { color: #a78bfa; font-weight: 600; background: #0f172a; }
+        td code { background: #0f172a; padding: 0.2rem 0.5rem; border-radius: 4px; color: #fbbf24; font-family: 'Consolas', monospace; font-size: 0.9em; }
+        
+        .tag { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; margin-right: 0.3rem; }
+        .tag-green { background: #065f46; color: #6ee7b7; }
+        .tag-blue { background: #1e3a8a; color: #93c5fd; }
+        .tag-yellow { background: #78350f; color: #fcd34d; }
+        .tag-purple { background: #5b21b6; color: #c4b5fd; }
+        .tag-red { background: #991b1b; color: #fca5a5; }
+        
+        .tip { background: #1e3a8a; border-left: 4px solid #3b82f6; padding: 0.8rem 1rem; margin-top: 1rem; border-radius: 0 8px 8px 0; }
+        .tip strong { color: #93c5fd; }
+        
+        .warning { background: #78350f; border-left: 4px solid #f59e0b; padding: 0.8rem 1rem; margin-top: 1rem; border-radius: 0 8px 8px 0; }
+        .warning strong { color: #fcd34d; }
+        
+        .example-block { background: #0f172a; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+        .example-block h4 { color: #94a3b8; font-size: 0.85rem; margin-bottom: 0.5rem; }
+        .example-block code { color: #22d3ee; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📖 命名规范手册</h1>
+        <p>让系统自动识别题目来源和分类</p>
+        <div class="header-actions">
+            <a href="/" class="btn">← 返回主页</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="intro">
+            <h2>为什么要遵循命名规范？</h2>
+            <p>正确的文件命名可以让系统自动识别题目来源平台、题号、题目名称和使用的算法，从而生成准确的题目链接和分类统计。</p>
+        </div>
+        
+        <!-- 洛谷命名规范 -->
+        <div class="section">
+            <h3>🏛️ 洛谷 (Luogu)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>题号格式</th>
+                        <th>示例</th>
+                        <th>生成的链接</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>B</code> + 数字 <span class="tag tag-green">入门</span></td>
+                        <td><code>B3626_跳跃机器人.cpp</code></td>
+                        <td><code>luogu.com.cn/problem/B3626</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>P</code> + 数字 <span class="tag tag-blue">普及/提高</span></td>
+                        <td><code>P1314_聪明的质检员.cpp</code></td>
+                        <td><code>luogu.com.cn/problem/P1314</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>T</code> + 数字 <span class="tag tag-purple">团队题</span></td>
+                        <td><code>T123456_团队题目.cpp</code></td>
+                        <td><code>luogu.com.cn/problem/T123456</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>U</code> + 数字 <span class="tag tag-yellow">UVA</span></td>
+                        <td><code>U12345_题目名.cpp</code></td>
+                        <td><code>luogu.com.cn/problem/U12345</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>AT</code> + 编号 <span class="tag tag-red">AtCoder</span></td>
+                        <td><code>AT_abc123_a.cpp</code></td>
+                        <td><code>luogu.com.cn/problem/AT_abc123_a</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>CF</code> + 数字 <span class="tag tag-purple">Codeforces</span></td>
+                        <td><code>CF1234A_题目名.cpp</code></td>
+                        <td><code>luogu.com.cn/problem/CF1234A</code></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="example-block">
+                <h4>推荐命名格式</h4>
+                <code>题号_题目名称(算法标签).cpp</code>
+                <br><br>
+                <strong>示例：</strong>
+                <code>B2005_字符三角形.cpp</code><br>
+                <code>P1219_八皇后(dfs).cpp</code><br>
+                <code>P4779_单源最短路径(dijkstra).cpp</code>
+            </div>
+        </div>
+        
+        <!-- Codeforces命名规范 -->
+        <div class="section">
+            <h3>🔵 Codeforces</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>题号格式</th>
+                        <th>示例</th>
+                        <th>生成的链接</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>CF</code> + 比赛号 + 题号</td>
+                        <td><code>CF1234A_题目名.cpp</code></td>
+                        <td><code>codeforces.com/problemset/problem/1234/A</code></td>
+                    </tr>
+                    <tr>
+                        <td>比赛号 + 题号（无前缀）</td>
+                        <td><code>1234A_题目名.cpp</code></td>
+                        <td><code>codeforces.com/problemset/problem/1234/A</code></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="tip">
+                <strong>提示：</strong> Codeforces 题号通常是「比赛编号 + 题目字母」，如 1822A、1699C 等。
+            </div>
+        </div>
+        
+        <!-- USACO命名规范 -->
+        <div class="section">
+            <h3>🇺🇸 USACO</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>题号格式</th>
+                        <th>示例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>USACO</code> + 年份 + 月份 + 题目</td>
+                        <td><code>USACO_2023_Dec_B1.cpp</code></td>
+                    </tr>
+                    <tr>
+                        <td>直接使用题目名</td>
+                        <td><code>USACO_milk_pails.cpp</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- NOIP/CSP命名规范 -->
+        <div class="section">
+            <h3>🇨🇳 NOIP / CSP / 省选</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>题目类型</th>
+                        <th>示例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>NOIP 普及组</td>
+                        <td><code>NOIP2020_做题.cpp</code></td>
+                    </tr>
+                    <tr>
+                        <td>NOIP 提高组</td>
+                        <td><code>NOIP2020_T1_潜水员.cpp</code></td>
+                    </tr>
+                    <tr>
+                        <td>CSP-J/S</td>
+                        <td><code>CSPJ2022_乘方.cpp</code></td>
+                    </tr>
+                    <tr>
+                        <td>省选</td>
+                        <td><code>SD2023_矩阵.cpp</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 算法标签 -->
+        <div class="section">
+            <h3>🏷️ 常用算法标签（建议放在括号内）</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>分类</th>
+                        <th>标签示例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>搜索</td>
+                        <td>
+                            <span class="tag tag-blue">dfs</span>
+                            <span class="tag tag-blue">bfs</span>
+                            <span class="tag tag-blue">二分</span>
+                            <span class="tag tag-blue">三分</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>图论</td>
+                        <td>
+                            <span class="tag tag-green">dijkstra</span>
+                            <span class="tag tag-green">spfa</span>
+                            <span class="tag tag-green">floyd</span>
+                            <span class="tag tag-green">kruskal</span>
+                            <span class="tag tag-green">拓扑排序</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>DP</td>
+                        <td>
+                            <span class="tag tag-purple">dp</span>
+                            <span class="tag tag-purple">背包</span>
+                            <span class="tag tag-purple">区间dp</span>
+                            <span class="tag tag-purple">状压dp</span>
+                            <span class="tag tag-purple">树形dp</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>数据结构</td>
+                        <td>
+                            <span class="tag tag-yellow">线段树</span>
+                            <span class="tag tag-yellow">树状数组</span>
+                            <span class="tag tag-yellow">并查集</span>
+                            <span class="tag tag-yellow">主席树</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>数学</td>
+                        <td>
+                            <span class="tag tag-red">gcd</span>
+                            <span class="tag tag-red">素数</span>
+                            <span class="tag tag-red">矩阵快速幂</span>
+                            <span class="tag tag-red">组合数</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>字符串</td>
+                        <td>
+                            <span class="tag tag-green">kmp</span>
+                            <span class="tag tag-green">trie</span>
+                            <span class="tag tag-green">hash</span>
+                            <span class="tag tag-green">ac自动机</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 注意事项 -->
+        <div class="section">
+            <h3>⚠️ 注意事项</h3>
+            
+            <div class="warning">
+                <strong>避免使用的命名：</strong>
+                <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                    <li>纯日期格式：<code>2026_2_23.cpp</code>（系统会跳过识别）</li>
+                    <li>无意义的名称：<code>test.cpp</code>、<code>1.cpp</code></li>
+                    <li>中文特殊符号：<code>题目【1】.cpp</code>（可能导致编码问题）</li>
+                </ul>
+            </div>
+            
+            <div class="tip" style="margin-top: 1rem;">
+                <strong>最佳实践：</strong>
+                <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                    <li>题号放在最前面，便于排序和识别</li>
+                    <li>用下划线 <code>_</code> 分隔题号和题目名</li>
+                    <li>算法标签放在括号内，系统会自动提取</li>
+                    <li>题目名可以省略，系统会从代码中提取</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- 快速参考 -->
+        <div class="section">
+            <h3>📋 快速参考</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>平台</th>
+                        <th>题号前缀</th>
+                        <th>示例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>洛谷入门</td>
+                        <td><code>B</code></td>
+                        <td><code>B2005_字符三角形.cpp</code></td>
+                    </tr>
+                    <tr>
+                        <td>洛谷题库</td>
+                        <td><code>P</code></td>
+                        <td><code>P1219_八皇后.cpp</code></td>
+                    </tr>
+                    <tr>
+                        <td>Codeforces</td>
+                        <td><code>CF</code> 或无</td>
+                        <td><code>CF1822A.cpp</code> / <code>1822A.cpp</code></td>
+                    </tr>
+                    <tr>
+                        <td>AtCoder</td>
+                        <td><code>AT</code></td>
+                        <td><code>AT_abc301_a.cpp</code></td>
+                    </tr>
+                    <tr>
+                        <td>USACO</td>
+                        <td><code>USACO</code></td>
+                        <td><code>USACO_bronze_milk.cpp</code></td>
+                    </tr>
+                    <tr>
+                        <td>NOIP/CSP</td>
+                        <td><code>NOIP</code> / <code>CSP</code></td>
+                        <td><code>NOIP2020_T1.cpp</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

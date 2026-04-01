@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日训练计划 - 刷题管理系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+        .header p {
+            opacity: 0.85;
+            font-size: 0.9rem;
+        }
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.25);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-1px);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #7c7ff5, #9d6ff7);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        /* 日期导航 */
+        .date-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        .date-nav h2 {
+            font-size: 1.3rem;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* 今日概览 */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .overview-card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .overview-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #6366f1, #a855f7);
+        }
+        .overview-card .number {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .overview-card .label {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+        }
+        .overview-card .trend {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        .trend.up { color: #4ade80; }
+        .trend.down { color: #f87171; }
+
+        /* 训练计划卡片 */
+        .plan-section {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            margin-bottom: 1.5rem;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+        }
+        .section-header h3 {
+            font-size: 1.1rem;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tasks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .task-card {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 10px;
+            padding: 1.2rem;
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .task-card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.15);
+        }
+        .task-card.completed {
+            border-color: rgba(74, 222, 128, 0.3);
+            background: rgba(34, 197, 94, 0.05);
+        }
+        .task-card.skipped {
+            opacity: 0.6;
+        }
+        .task-card.failed {
+            border-color: rgba(248, 113, 113, 0.3);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.8rem;
+        }
+        .task-type {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .task-type.patch { background: rgba(251, 146, 60, 0.2); color: #fb923c; }
+        .task-type.reinforce { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
+        .task-type.advance { background: rgba(167, 139, 250, 0.2); color: #a78bfa; }
+
+        .task-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 0.3rem;
+        }
+        .task-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .task-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .action-btn {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-complete {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+        }
+        .btn-complete:hover {
+            background: linear-gradient(135deg, #2dd46a, #17b462);
+            transform: translateY(-1px);
+        }
+        .btn-fail {
+            background: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.3);
+        }
+        .btn-fail:hover {
+            background: rgba(248, 113, 113, 0.3);
+        }
+        .btn-skip {
+            background: rgba(148, 163, 184, 0.2);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+        .btn-skip:hover {
+            background: rgba(148, 163, 184, 0.3);
+        }
+
+        /* 空状态 */
+        .empty-plan {
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
+        }
+        .empty-plan .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* 进度条 */
+        .progress-section {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        .progress-bar {
+            height: 12px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 0.8rem;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+        .modal-header {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #e2e8f0;
+        }
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+        .difficulty-slider {
+            width: 100%;
+            margin: 1rem 0;
+        }
+        .modal-footer {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 768px) {
+            .overview-grid { grid-template-columns: repeat(2, 1fr); }
+            .header-content { flex-direction: column; gap: 1rem; }
+            .task-actions { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <h1>🎯 每日训练计划</h1>
+                <p>基于AI分析 · 动态调整 · 持续进步</p>
+            </div>
+            <div class="header-actions">
+                <a href="/" class="btn">📊 统计面板</a>
+                <a href="/settings" class="btn">⚙️ 设置</a>
+                <button class="btn btn-primary" onclick="openAddTaskModal()" id="generate-btn">➕ 添加任务</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 日期导航 -->
+        <div class="date-nav">
+            <h2 id="current-date">加载中...</h2>
+            <div class="header-actions">
+                <button class="btn" onclick="loadYesterday()">◀ 昨日</button>
+                <button class="btn" onclick="loadToday()">今日</button>
+                <button class="btn" onclick="loadTomorrow()">明日 ▶</button>
+            </div>
+        </div>
+
+        <!-- 今日概览 -->
+        <div class="overview-grid">
+            <div class="overview-card">
+                <div class="number" id="total-tasks">-</div>
+                <div class="label">今日任务</div>
+                <div class="trend" id="task-trend"></div>
+            </div>
+            <div class="overview-card">
+                <div class="number" id="completed-tasks">-</div>
+                <div class="label">已完成</div>
+                <div class="trend up">↑ 进度 <span id="progress-percent">0%</span></div>
+            </div>
+            <div class="overview-card">
+                <div class="number" id="streak-days">-</div>
+                <div class="label">连续打卡</div>
+                <div class="trend up">🔥 保持状态</div>
+            </div>
+            <div class="overview-card">
+                <div class="number" id="training-mode">-</div>
+                <div class="label">训练模式</div>
+                <div class="trend" id="mode-desc">...</div>
+            </div>
+        </div>
+
+        <!-- 今日进度 -->
+        <div class="progress-section">
+            <h3>📈 今日进度</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="progress-stats">
+                <span>完成: <strong id="completed-count">0</strong></span>
+                <span>进行中: <strong id="inprogress-count">0</strong></span>
+                <span>待开始: <strong id="pending-count">0</strong></span>
+            </div>
+        </div>
+
+        <br>
+
+        <!-- 训练计划 -->
+        <div class="plan-section">
+            <div class="section-header">
+                <h3>📋 今日任务列表</h3>
+                <button class="btn" onclick="refreshPlan()">🔄 刷新</button>
+            </div>
+            <div id="tasks-container" class="tasks-list">
+                <div class="empty-plan">
+                    <div class="icon">📝</div>
+                    <p>今日暂无训练计划</p>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem">点击上方"添加任务"开始今日训练</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI 今日推荐点评 -->
+        <div class="plan-section" id="ai-advice-section" style="display: none">
+            <div class="section-header">
+                <h3>🤖 AI 今日计划点评</h3>
+                <button class="btn" onclick="requestAIAdvice(currentPlan)" style="font-size:0.8rem">🔄 重新生成</button>
+            </div>
+            <div id="ai-advice-content" style="color: #cbd5e1; line-height: 1.9; font-size:0.95rem;"></div>
+        </div>
+
+        <!-- AI 分析结果 -->
+        <div class="plan-section" id="weakness-section" style="display: none">
+            <div class="section-header">
+                <h3>🤖 AI 弱点分析</h3>
+            </div>
+            <div id="weakness-content" style="color: #cbd5e1; line-height: 1.8;"></div>
+        </div>
+    </div>
+
+    <!-- 添加任务模态框 -->
+    <div id="add-task-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:1000;justify-content:center;align-items:center;">
+        <div style="background:#1e293b;border-radius:12px;padding:2rem;width:90%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+                <h3 style="margin:0;color:#f1f5f9;">➕ 添加新任务</h3>
+                <button onclick="closeAddTaskModal()" style="background:none;border:none;color:#94a3b8;font-size:1.5rem;cursor:pointer;">&times;</button>
+            </div>
+            <form id="add-task-form" onsubmit="submitAddTask(event)">
+                <div style="margin-bottom:1rem;">
+                    <label style="display:block;color:#94a3b8;font-size:0.85rem;margin-bottom:0.3rem;">任务名称 *</label>
+                    <input type="text" id="task-title-input" required placeholder="例如：CF 1500A 一道题"
+                           style="width:100%;padding:0.6rem 0.8rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#f1f5f9;font-size:0.95rem;box-sizing:border-box;">
+                </div>
+                <div style="display:flex;gap:1rem;margin-bottom:1rem;">
+                    <div style="flex:1;">
+                        <label style="display:block;color:#94a3b8;font-size:0.85rem;margin-bottom:0.3rem;">平台</label>
+                        <select id="task-platform-input" style="width:100%;padding:0.6rem 0.8rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#f1f5f9;font-size:0.95rem;">
+                            <option value="local">本地</option>
+                            <option value="luogu">洛谷</option>
+                            <option value="codeforces">Codeforces</option>
+                            <option value="atcoder">AtCoder</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div style="flex:1;">
+                        <label style="display:block;color:#94a3b8;font-size:0.85rem;margin-bottom:0.3rem;">题目ID</label>
+                        <input type="text" id="task-id-input" placeholder="如 P1001、1500A"
+                               style="width:100%;padding:0.6rem 0.8rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#f1f5f9;font-size:0.95rem;box-sizing:border-box;">
+                    </div>
+                </div>
+                <div style="display:flex;gap:1rem;margin-bottom:1rem;">
+                    <div style="flex:1;">
+                        <label style="display:block;color:#94a3b8;font-size:0.85rem;margin-bottom:0.3rem;">难度 (1-10)</label>
+                        <input type="number" id="task-difficulty-input" min="1" max="10" value="5"
+                               style="width:100%;padding:0.6rem 0.8rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#f1f5f9;font-size:0.95rem;box-sizing:border-box;">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="display:block;color:#94a3b8;font-size:0.85rem;margin-bottom:0.3rem;">预计时间(分钟)</label>
+                        <input type="number" id="task-time-input" min="5" max="300" value="30"
+                               style="width:100%;padding:0.6rem 0.8rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#f1f5f9;font-size:0.95rem;box-sizing:border-box;">
+                    </div>
+                </div>
+                <div style="margin-bottom:1rem;">
+                    <label style="display:block;color:#94a3b8;font-size:0.85rem;margin-bottom:0.3rem;">知识点标签</label>
+                    <input type="text" id="task-tags-input" placeholder="用逗号分隔，如：动态规划,贪心"
+                           style="width:100%;padding:0.6rem 0.8rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#f1f5f9;font-size:0.95rem;box-sizing:border-box;">
+                </div>
+                <div style="margin-bottom:1rem;">
+                    <label style="display:block;color:#94a3b8;font-size:0.85rem;margin-bottom:0.3rem;">题目链接</label>
+                    <input type="url" id="task-url-input" placeholder="https://..."
+                           style="width:100%;padding:0.6rem 0.8rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#f1f5f9;font-size:0.95rem;box-sizing:border-box;">
+                </div>
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block;color:#94a3b8;font-size:0.85rem;margin-bottom:0.3rem;">备注/原因</label>
+                    <textarea id="task-reason-input" rows="2" placeholder="为什么做这道题？"
+                              style="width:100%;padding:0.6rem 0.8rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#f1f5f9;font-size:0.95rem;box-sizing:border-box;resize:vertical;"></textarea>
+                </div>
+                <div style="display:flex;gap:1rem;justify-content:flex-end;">
+                    <button type="button" onclick="closeAddTaskModal()" style="padding:0.6rem 1.5rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#94a3b8;cursor:pointer;font-size:0.95rem;">取消</button>
+                    <button type="submit" style="padding:0.6rem 1.5rem;background:#8b5cf6;border:none;border-radius:6px;color:white;cursor:pointer;font-size:0.95rem;font-weight:600;">✓ 添加</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let currentPlan = null;
+
+        // 初始化
+        async function init() {
+            updateDateDisplay();
+            await loadTodayPlan();
+            await loadUserStats();
+        }
+
+        function updateDateDisplay() {
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('current-date').textContent = currentDate.toLocaleDateString('zh-CN', options);
+        }
+
+        // 加载今日计划
+        async function loadTodayPlan() {
+            const dateStr = formatDate(currentDate);
+            try {
+                const res = await fetch(`/api/plan/${dateStr}`);
+                const data = await res.json();
+
+                if (data.success && data.plan) {
+                    currentPlan = data.plan;
+                    renderTasks(data.plan.tasks);
+                    updateProgress(data.plan);
+                } else {
+                    showEmptyPlan();
+                }
+            } catch (e) {
+                console.error('加载计划失败:', e);
+                showEmptyPlan();
+            }
+        }
+
+        // 打开添加任务模态框
+        function openAddTaskModal() {
+            document.getElementById('add-task-modal').style.display = 'flex';
+            document.getElementById('task-title-input').focus();
+        }
+
+        // 关闭添加任务模态框
+        function closeAddTaskModal() {
+            document.getElementById('add-task-modal').style.display = 'none';
+            document.getElementById('add-task-form').reset();
+        }
+
+        // 提交添加任务表单
+        async function submitAddTask(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('task-title-input').value.trim();
+            const platform = document.getElementById('task-platform-input').value;
+            const problemId = document.getElementById('task-id-input').value.trim();
+            const difficulty = parseInt(document.getElementById('task-difficulty-input').value) || 5;
+            const tags = document.getElementById('task-tags-input').value.trim();
+            const url = document.getElementById('task-url-input').value.trim();
+            const reason = document.getElementById('task-reason-input').value.trim();
+            const estimatedTime = parseInt(document.getElementById('task-time-input').value) || 30;
+
+            if (!title) {
+                alert('请输入任务名称');
+                return;
+            }
+
+            const taskData = {
+                title: title,
+                platform: platform,
+                problem_id: problemId || title,
+                difficulty: difficulty,
+                tags: tags ? tags.split(',').map(t => t.trim()).filter(t => t) : [],
+                url: url,
+                reason: reason,
+                estimated_time: estimatedTime + '分钟'
+            };
+
+            try {
+                const dateStr = formatDate(currentDate);
+                const res = await fetch('/api/task/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        date: dateStr,
+                        task: taskData
+                    })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    closeAddTaskModal();
+                    await loadTodayPlan();
+                    await loadUserStats();
+                } else {
+                    alert('添加失败: ' + data.error);
+                }
+            } catch (e) {
+                alert('请求失败: ' + e.message);
+            }
+        }
+
+        // 请求 AI 整理点评（保留功能，需要时可调用）
+        async function requestAIAdvice(plan) {
+            const aiSection = document.getElementById('ai-advice-section');
+            const aiContent = document.getElementById('ai-advice-content');
+            aiSection.style.display = 'block';
+            aiContent.innerHTML = '<span style="color:#94a3b8">🤖 AI 正在整理今日推荐...</span>';
+
+            const tasks = plan && plan.tasks ? plan.tasks : [];
+            if (tasks.length === 0) {
+                aiContent.innerHTML = '<span style="color:#94a3b8">暂无任务数据</span>';
+                return;
+            }
+
+            const taskDesc = tasks.map((t, i) =>
+                `${i+1}. 题目：${t.problem_title}（${t.platform}），难度 ${t.difficulty}，` +
+                `知识点：${(t.tags||[]).join('/')}，原因：${t.reason || ''}` +
+                (t.url ? `，链接：${t.url}` : '')
+            ).join('\n');
+
+            const prompt = `我今天的每日刷题计划如下，请帮我整理并给出简洁的学习建议：\n${taskDesc}\n\n` +
+                `请按以下格式输出：\n` +
+                `1. 📋 **今日计划总结**（一句话概括）\n` +
+                `2. 💡 **各题目要点**（每题一行，包含题目名和核心考点）\n` +
+                `3. 🎯 **学习建议**（2-3条针对性建议）`;
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: prompt, context: [] })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    aiContent.innerHTML = data.reply
+                        .replace(/\n/g, '<br>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                } else {
+                    aiContent.innerHTML = '<span style="color:#f87171">AI 点评获取失败</span>';
+                }
+            } catch (e) {
+                aiContent.innerHTML = '<span style="color:#f87171">AI 服务不可用</span>';
+            }
+        }
+
+
+        // 渲染任务列表
+        function renderTasks(tasks) {
+            const container = document.getElementById('tasks-container');
+
+            if (!tasks || tasks.length === 0) {
+                showEmptyPlan();
+                return;
+            }
+
+            const priorityLabels = {
+                'HIGH': '🔴 高优先',
+                'MEDIUM': '🟡 中优先',
+                'LOW': '🟢 低优先'
+            };
+
+            const priorityClass = {
+                'HIGH': 'patch',
+                'MEDIUM': 'reinforce',
+                'LOW': 'advance'
+            };
+
+            let html = '';
+            for (const task of tasks) {
+                const statusClass = task.status || 'pending';
+                const completed = statusClass === 'completed';
+                const priority = task.priority || 'MEDIUM';
+                const isNewTopic = task.is_new_topic === true;
+
+                const cardExtraStyle = isNewTopic
+                    ? 'border-color: rgba(6,182,212,0.5); box-shadow: 0 0 12px rgba(6,182,212,0.15);'
+                    : task.source === 'ai_recommend'
+                    ? 'border-color: rgba(139,92,246,0.4); box-shadow: 0 0 8px rgba(139,92,246,0.1);'
+                    : task.source === 'manual'
+                    ? 'border-color: rgba(34,197,94,0.4); box-shadow: 0 0 8px rgba(34,197,94,0.1);'
+                    : '';
+
+                html += `
+                    <div class="task-card ${statusClass}" style="${cardExtraStyle}">
+                        <div class="task-header">
+                            <div style="display:flex;align-items:center;gap:0.5rem;">
+                                <span class="task-type ${priorityClass[priority] || ''}">${priorityLabels[priority] || priority}</span>
+                                ${isNewTopic ? '<span style="background:rgba(6,182,212,0.2);color:#67e8f9;font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:10px;font-weight:600;">🆕 新知识点</span>' : ''}
+                                ${task.source === 'ai_recommend' ? '<span style="background:rgba(139,92,246,0.2);color:#a78bfa;font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:10px;font-weight:600;">🤖 AI推荐</span>' : ''}
+                                ${task.source === 'manual' ? '<span style="background:rgba(34,197,94,0.2);color:#4ade80;font-size:0.7rem;padding:0.15rem 0.5rem;border-radius:10px;font-weight:600;">✏️ 手动添加</span>' : ''}
+                            </div>
+                            ${completed ? '<span style="color: #4ade80; font-size: 1.5rem">✓</span>' : ''}
+                        </div>
+                        <div class="task-title">${task.problem_title || '未命名任务'}</div>
+                        <div class="task-meta">
+                            ${task.tags && task.tags.length > 0 ? `<span>📚 ${task.tags.join(', ')}</span>` : ''}
+                            ${task.difficulty ? `<span>⭐ 难度 ${task.difficulty}</span>` : ''}
+                            ${task.platform ? `<span>🔗 ${task.platform}</span>` : ''}
+                            ${task.estimated_time ? `<span>⏱️ ${task.estimated_time}分钟</span>` : ''}
+                        </div>
+                        ${task.reason ? `<p style="color: #94a3b8; font-size: 0.85rem; margin-top: 0.5rem">💡 ${task.reason}</p>` : ''}
+
+                        ${task.url ? `<a href="${task.url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; margin-top: 0.5rem; color: #818cf8; text-decoration: none; font-size: 0.85rem;">🔗 打开题目链接</a>` : ''}
+
+                        ${!completed ? `
+                        <div class="task-actions">
+                            <button class="action-btn btn-complete" onclick="completeTask('${task.problem_id}')">
+                                ✓ 完成
+                            </button>
+                            <button class="action-btn btn-skip" onclick="deleteTask('${task.problem_id}')">
+                                🗑️ 删除
+                            </button>
+                        </div>
+                        ` : '<div style="margin-top: 1rem; color: #4ade80; font-size: 0.85rem">✨ 已完成</div>'}
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // 更新进度
+        function updateProgress(plan) {
+            const total = plan.tasks.length;
+            const completed = plan.tasks.filter(t => t.status === 'completed').length;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            document.getElementById('total-tasks').textContent = total;
+            document.getElementById('completed-tasks').textContent = completed;
+            document.getElementById('progress-percent').textContent = percent + '%';
+            document.getElementById('progress-fill').style.width = percent + '%';
+
+            document.getElementById('completed-count').textContent = completed;
+            document.getElementById('pending-count').textContent = plan.tasks.filter(t => !t.status).length;
+            document.getElementById('inprogress-count').textContent = 0;
+        }
+
+        // 加载用户统计
+        async function loadUserStats() {
+            try {
+                const res = await fetch('/api/user-stats');
+                const stats = await res.json();
+
+                document.getElementById('streak-days').textContent = stats.streak_days || 0;
+
+                const modeNames = {
+                    'distributed': '分散训练',
+                    'focused': '集中训练'
+                };
+                document.getElementById('training-mode').textContent = modeNames[stats.training_mode] || '-';
+                document.getElementById('mode-desc').textContent = stats.training_mode === 'distributed' ? '全面发展' : '专精突破';
+
+                // 显示AI弱点分析
+                if (stats.weakness_analysis) {
+                    document.getElementById('weakness-section').style.display = 'block';
+                    document.getElementById('weakness-content').innerHTML = stats.weakness_analysis.replace(/\n/g, '<br>');
+                }
+            } catch (e) {
+                console.error('加载统计失败:', e);
+            }
+        }
+
+        // 完成任务
+        async function completeTask(problemId) {
+            const dateStr = formatDate(currentDate);
+            try {
+                const res = await fetch('/api/task/by-problem-id/complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ problem_id: problemId, date: dateStr })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    await loadTodayPlan();
+                } else {
+                    alert('操作失败: ' + data.error);
+                }
+            } catch (e) {
+                alert('请求失败: ' + e.message);
+            }
+        }
+
+        // 删除任务
+        async function deleteTask(problemId) {
+            if (!confirm('确定要删除这个任务吗？')) return;
+
+            const dateStr = formatDate(currentDate);
+            try {
+                const res = await fetch('/api/task/by-problem-id/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ problem_id: problemId, date: dateStr })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    await loadTodayPlan();
+                } else {
+                    alert('删除失败: ' + data.error);
+                }
+            } catch (e) {
+                alert('请求失败: ' + e.message);
+            }
+        }
+
+        // 日期导航
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function loadToday() {
+            currentDate = new Date();
+            updateDateDisplay();
+            loadTodayPlan();
+        }
+
+        function loadYesterday() {
+            currentDate.setDate(currentDate.getDate() - 1);
+            updateDateDisplay();
+            loadTodayPlan();
+        }
+
+        function loadTomorrow() {
+            currentDate.setDate(currentDate.getDate() + 1);
+            updateDateDisplay();
+            loadTodayPlan();
+        }
+
+        function refreshPlan() {
+            loadTodayPlan();
+            loadUserStats();
+        }
+
+        function showEmptyPlan() {
+            document.getElementById('tasks-container').innerHTML = `
+                <div class="empty-plan">
+                    <div class="icon">📝</div>
+                    <p>今日暂无训练计划</p>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem">点击上方"添加任务"开始今日训练</p>
+                </div>
+            `;
+            document.getElementById('total-tasks').textContent = '0';
+            document.getElementById('completed-tasks').textContent = '0';
+            document.getElementById('progress-percent').textContent = '0%';
+            document.getElementById('progress-fill').style.width = '0%';
+        }
+
+        init();
+    </script>
+</body>
+</html>

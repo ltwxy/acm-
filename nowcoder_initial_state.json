@@ -1,0 +1,328 @@
+{
+  "prefetchData": {
+    "1": {
+      "userInfo": {}
+    },
+    "3": {
+      "showJobTab": false,
+      "activeTab": "Contents",
+      "tabCount": {
+        "contentCount": 1,
+        "commentCount": 0
+      },
+      "contentList": [
+        {
+          "contentId": "850342224381349888",
+          "contentType": 250,
+          "interviewExp": null,
+          "userBrief": {
+            "userId": 292555405,
+            "nickname": "苍雪雷鸣",
+            "admin": false,
+            "followed": false,
+            "headImgUrl": "https://images.nowcoder.com/images/20211229/725645849_1640784014154/7402D8581CBE60E6F7092E8BE138892C",
+            "gender": null,
+            "headDecorateUrl": "",
+            "honorLevel": 5,
+            "honorLevelName": "青出于蓝 Lv.4",
+            "honorLevelColor": "42c1a2",
+            "workTime": "2029",
+            "educationInfo": "河南牧业经济学院",
+            "secondMajorName": "计算机类",
+            "identityList": null,
+            "activityIconList": [],
+            "activityIconListV2": [
+              {
+                "imgUrl": "https://static.nowcoder.com/sparta/icon/level/lv4.png",
+                "expireTime": null,
+                "name": "等级",
+                "discussLink": null,
+                "appLink": null,
+                "pcLink": null,
+                "content": null,
+                "source": null,
+                "type": null
+              }
+            ],
+            "memberIdentity": 0,
+            "memberStartTime": null,
+            "memberEndTime": null,
+            "member": null,
+            "authDisplayInfo": "河南牧业经济学院 算法工程师",
+            "enterpriseInfo": null,
+            "badgeIconUrl": null
+          },
+          "contentData": {
+            "id": "850342224381349888",
+            "uuid": "65f9366912234a04a64fa391029e517a",
+            "authorId": "292555405",
+            "title": "题解 | 小红的数组清空",
+            "newTitle": null,
+            "richText": null,
+            "content": "#include&lt;bits/stdc++.h&gt; #define all(x) (x).begin(), (x).end() using namespace std; typedef long long ll; typedef long double ld; typedef pair&lt;int, int&gt; pii; typedef pair&lt;ll,ll&gt; pl; typedef pair&lt;ld,ld&gt; pd; typedef vector&lt;int&gt; vi; typedef vector&lt;ld&gt; vd; typedef vect...",
+            "newContent": null,
+            "typeName": "讨论帖",
+            "beMyOnly": false,
+            "contentImageUrls": [],
+            "isTop": null,
+            "hot": false,
+            "isGilded": false,
+            "isReward": false,
+            "reward": 0,
+            "hasOfferCompareTag": false,
+            "staffAnswer": false,
+            "withAnonymousOffer": false,
+            "isAnonymousFlag": false,
+            "isWithAcceptFlag": null,
+            "postCertify": 0,
+            "entityId": 561616,
+            "entityType": 73,
+            "newReferral": null,
+            "createTime": 1770609385000,
+            "editTime": 1770609385000,
+            "recommendAd": false,
+            "edited": false,
+            "showTime": 1770609385000,
+            "desc": "#include&lt;bits/stdc++.h&gt; #define all(x) (x).begin(), (x).end() using namespace std; typedef lon..."
+          },
+          "subjectData": [],
+          "voteData": {
+            "voteId": 0,
+            "withVote": false,
+            "voteTitle": null,
+            "voteType": null
+          },
+          "blogZhuanlan": null,
+          "frequencyData": {
+            "likeCnt": 1,
+            "followCnt": 0,
+            "commentCnt": 0,
+            "totalCommentCnt": 0,
+            "viewCnt": 46,
+            "shareCnt": 0,
+            "isLike": false,
+            "isFollow": false,
+            "flowerData": null
+          },
+          "extraInfo": {
+            "contentID_var": "561616"
+          },
+          "internalRecommend": null
+        }
+      ],
+      "topContentList": [],
+      "current": 1,
+      "totalPage": 1,
+      "isPagination": true,
+      "_isSSRError": false
+    }
+  },
+  "store": {
+    "app": {
+      "userInfo": {},
+      "refreshed": false,
+      "scrolled": false
+    },
+    "creation": {
+      "isTheMainState": false
+    },
+    "enterprise": {
+      "enterpriseInfo": {},
+      "enterpriseInfoNP": {},
+      "enterpriseUser": {},
+      "enterpriseQuestionCount": 0,
+      "enterpriseId": "",
+      "falseCompanyId": "",
+      "companyParams": {},
+      "enterpriseInterviewCount": 0,
+      "enterpriseBeginnerGuideFlag": true,
+      "timelineRed": null,
+      "_allCareerJobs": [],
+      "_communityBrief": [],
+      "jobList": [],
+      "hrList": [],
+      "jobCondition": {
+        "city": "",
+        "query": "",
+        "salary": null,
+        "recruitType": 0,
+        "career": [],
+        "page": 1,
+        "totalCount": 0,
+        "pageSize": 20
+      },
+      "jobMenu": {},
+      "abResultForPublish": "qyzy_publish_ab_show",
+      "jobSearchProgressAB": "jobSearchProgress_AB_a",
+      "jobScheduleCount": 0,
+      "evaluationCount": 0,
+      "salaryCount": 0,
+      "referralCount": 0,
+      "forbidLoginPopup": true,
+      "currentUrl": "",
+      "headerHeight": 134,
+      "fixedHeaderScrollTop": 111
+    },
+    "exam": {
+      "job": {},
+      "topicId": -1,
+      "gioBaseData": {},
+      "miniAdPicUrl": "",
+      "isComplete": true,
+      "isCompleteFinish": false,
+      "isCompletePromise": {}
+    },
+    "interviewQuestion": {
+      "interviewFilterObj": {}
+    },
+    "live": {
+      "barrages": [],
+      "needUpdateQaList": false,
+      "hotValue": 0,
+      "liveStatus": -1,
+      "drawStatus": false,
+      "officialStatus": false,
+      "companyStatus": false,
+      "liveProcess": {
+        "barrageVos": [],
+        "process": [],
+        "isDraw": false
+      },
+      "currentNodeTiming": {
+        "timing": 0
+      },
+      "currentPlaybackTiming": 0,
+      "barrageKeywords": {
+        "keywords": ""
+      },
+      "drawDialogInfo": {
+        "currentPrizeInfo": {},
+        "dialogVisible": false
+      },
+      "currentUnderTab": {
+        "tabName": ""
+      },
+      "isfullScreen": false,
+      "accountId": 0,
+      "accountType": 2
+    },
+    "profile": {
+      "isSelf": false,
+      "profile": {
+        "userId": 292555405,
+        "nickname": "苍雪雷鸣",
+        "headImgUrl": "https://images.nowcoder.com/images/20211229/725645849_1640784014154/7402D8581CBE60E6F7092E8BE138892C",
+        "userBgImgUrl": "https://uploadfiles.nowcoder.com/files/20230322/68_1679458244538/pc_jl.jpg",
+        "headDecorateUrl": "",
+        "honorLevel": 5,
+        "honorLevelName": "青出于蓝 Lv.4",
+        "honorLevelColor": "42c1a2",
+        "identityDisplayName": "",
+        "educationInfo": "河南牧业经济学院",
+        "workTime": "2029",
+        "jobName": "算法工程师",
+        "introduction": "最深情的舔狗",
+        "schoolMajor": "物联网工程",
+        "eduLevel": "本科",
+        "additionInfoCompleteRateNum": 77,
+        "additionInfoCompleteRate": "77%",
+        "followed": false,
+        "blacked": false,
+        "ip4Location": "河南",
+        "identityList": [],
+        "activityIconList": [],
+        "activityIconListV2": [
+          {
+            "imgUrl": "https://static.nowcoder.com/sparta/icon/level/lv4.png",
+            "expireTime": null,
+            "name": "等级",
+            "discussLink": null,
+            "content": null,
+            "source": null,
+            "type": null
+          }
+        ],
+        "memberIdentity": 0,
+        "authDisplayInfo": "河南牧业经济学院 算法工程师",
+        "isOpenPinned": false,
+        "maxPinnedCount": 2,
+        "privacySetting": {
+          "comment": true,
+          "doQuestion": true,
+          "collect": true
+        },
+        "id": 292555405,
+        "gender": null,
+        "livePlace": null,
+        "workType": 1,
+        "workStatusDetail": 2
+      },
+      "followData": {
+        "fansCount": 0,
+        "followCount": 3,
+        "likeCount": 4,
+        "visitorCount": 2,
+        "blackCount": 0,
+        "shieldCount": 0,
+        "longContentCount": 0,
+        "momentCount": 0
+      },
+      "isNewExamTest": true,
+      "isEnterprise": false,
+      "isHaveLive": false,
+      "enterpriseLivingId": 0
+    },
+    "QuestionDetail": {
+      "gioBaseData": {},
+      "isFlod": false
+    },
+    "search": {
+      "searchParams": {
+        "query": "",
+        "type": "all",
+        "searchType": "搜索页输入框",
+        "subType": 0
+      },
+      "routerLoading": false,
+      "logId": "",
+      "sessionId": "",
+      "standardIds": [],
+      "forbidLoginPopup": true,
+      "relationSearchData": []
+    },
+    "terminal": {
+      "logId": ""
+    },
+    "testPaper": {
+      "fullscreen": false,
+      "darkMode": false,
+      "questionsMap": {},
+      "questions": [],
+      "paperSummary": {},
+      "currentQuestionIndex": 0,
+      "currentExamStatus": "Ready",
+      "timeCount": 0,
+      "pageSource": "公司真题",
+      "testReportData": {},
+      "newEditorAbFlag": false,
+      "marketFreeCount": 0
+    }
+  },
+  "pinia": {
+    "app": {
+      "userInfo": {},
+      "isLogin": false,
+      "isBusinessModel": false,
+      "refreshed": false,
+      "scrolled": false
+    }
+  },
+  "app": {
+    "188": {
+      "enterpriseCollections": [],
+      "_isSSRError": false
+    }
+  },
+  "path": "/users/292555405",
+  "fullPath": "/users/292555405"
+}

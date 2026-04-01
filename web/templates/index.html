@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>刷题管理系统</title>
+    <base target="_blank">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif; background: #0f172a; color: #e2e8f0; }
+        
+        .header { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); color: white; padding: 2rem 2rem 1.5rem; position: relative; overflow: hidden; }
+        .header::before { content: ''; position: absolute; top: -50%; right: -20%; width: 400px; height: 400px; background: rgba(255,255,255,0.05); border-radius: 50%; }
+        .header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.3rem; }
+        .header p { opacity: 0.85; font-size: 0.95rem; }
+        .header-actions { position: absolute; top: 1.5rem; right: 2rem; display: flex; gap: 0.5rem; }
+        .btn { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; text-decoration: none; }
+        .btn:hover { background: rgba(255,255,255,0.25); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-delete { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 2px 6px; border-radius: 4px; opacity: 0.6; }
+        .btn-delete:hover { background: rgba(239,68,68,0.2); opacity: 1; }
+        .nav-tabs { display: flex; gap: 0.3rem; margin-bottom: 0.5rem; }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card { background: #1e293b; border-radius: 12px; padding: 1.2rem 1.5rem; border: 1px solid #334155; }
+        .stat-card .number { font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-card .label { color: #94a3b8; font-size: 0.85rem; margin-top: 0.3rem; }
+        
+        .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 1.5rem; }
+        .chart-card { background: #1e293b; border-radius: 12px; padding: 1.5rem; border: 1px solid #334155; min-height: 350px; }
+        .chart-card h3 { margin-bottom: 1rem; color: #e2e8f0; font-size: 1rem; }
+        
+        /* Markdown 渲染样式 */
+        .ai-content h1, .ai-content h2, .ai-content h3 { color: #c4b5fd; margin: 1rem 0 0.5rem; }
+        .ai-content h1:first-child, .ai-content h2:first-child, .ai-content h3:first-child { margin-top: 0; }
+        .ai-content p { margin: 0.5rem 0; }
+        .ai-content ul, .ai-content ol { margin: 0.5rem 0; padding-left: 1.5rem; }
+        .ai-content li { margin: 0.3rem 0; }
+        .ai-content strong { color: #fcd34d; }
+        .ai-content a { color: #38bdf8; text-decoration: underline; }
+        .ai-content code { background: #334155; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85em; }
+        .ai-content pre { background: #0f172a; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 0.5rem 0; }
+        .ai-content pre code { background: none; padding: 0; }
+        .ai-content blockquote { border-left: 3px solid #6366f1; padding-left: 1rem; margin: 0.5rem 0; color: #94a3b8; }
+        /* 题目推荐样式 */
+        .ai-content .problem-item { margin: 0.8rem 0 0.3rem; padding: 0.5rem; background: rgba(99, 102, 241, 0.15); border-radius: 6px; border-left: 3px solid #6366f1; }
+        .ai-content .problem-item strong { color: #c4b5fd; font-size: 1rem; }
+        .ai-content .search-link { margin: 0.2rem 0 0.2rem 1.5rem; }
+        .ai-content .search-link a { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 4px; text-decoration: none; font-size: 0.85rem; margin-right: 0.5rem; }
+        .ai-content .luogu-link { background: rgba(0, 180, 100, 0.2); color: #4ade80; }
+        .ai-content .luogu-link:hover { background: rgba(0, 180, 100, 0.3); }
+        .ai-content .cf-link { background: rgba(200, 50, 50, 0.2); color: #f87171; }
+        .ai-content .cf-link:hover { background: rgba(200, 50, 50, 0.3); }
+        .ai-content .problem-analysis { color: #94a3b8; margin: 0.3rem 0 0.5rem 1.5rem; font-size: 0.9rem; }
+
+        /* AI对话界面 */
+        .chat-panel { background: #1e293b; border-radius: 12px; border: 1px solid #334155; margin-bottom: 1.5rem; }
+        .chat-panel.hidden { display: none; }
+        .chat-panel.active { display: block; }
+        
+        /* 候选题目池面板 */
+        .candidates-panel { background: #1e293b; border-radius: 12px; border: 1px solid #334155; margin-bottom: 1.5rem; }
+        .candidates-header { padding: 1rem 1.5rem; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        .candidates-header h3 { color: #a78bfa; margin: 0; }
+        .candidates-list { max-height: 500px; overflow-y: auto; padding: 1rem; }
+        
+        .candidate-item { background: #0f172a; border-radius: 8px; padding: 1rem; margin-bottom: 0.8rem; border: 1px solid #334155; }
+        .candidate-item.selected { border-color: #6366f1; background: rgba(99, 102, 241, 0.1); }
+        .candidate-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+        .candidate-title { font-weight: 600; color: #e2e8f0; }
+        .candidate-platform { font-size: 0.8rem; padding: 0.2rem 0.5rem; border-radius: 4px; margin-left: 0.5rem; }
+        .candidate-platform.luogu { background: rgba(0, 180, 100, 0.2); color: #4ade80; }
+        .candidate-platform.cf { background: rgba(200, 50, 50, 0.2); color: #f87171; }
+        .candidate-platform.atcoder { background: rgba(0, 150, 255, 0.2); color: #60a5fa; }
+        .candidate-difficulty { font-size: 0.85rem; color: #94a3b8; }
+        .candidate-tags { font-size: 0.8rem; color: #a78bfa; margin: 0.3rem 0; }
+        .candidate-reason { font-size: 0.85rem; color: #64748b; margin: 0.5rem 0; }
+        .candidate-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+        .candidate-link { font-size: 0.85rem; color: #38bdf8; text-decoration: none; }
+        .candidate-link:hover { text-decoration: underline; }
+        .select-checkbox { width: 18px; height: 18px; cursor: pointer; }
+        .chat-header { padding: 1rem 1.5rem; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h3 { color: #a78bfa; margin: 0; display: flex; align-items: center; gap: 0.5rem; }
+        .chat-header h3::before { content: '💬'; font-size: 1.2rem; }
+        .chat-close { background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.3); padding: 0.3rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+        .chat-close:hover { background: rgba(239,68,68,0.3); }
+        .chat-btn { background: rgba(99,102,241,0.2); color: #a78bfa; border: 1px solid rgba(99,102,241,0.3); padding: 0.3rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+        .restore-ai-btn { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; padding: 0.8rem 1.2rem; border-radius: 50px; cursor: pointer; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); z-index: 1000; }
+        .restore-ai-btn:hover { background: linear-gradient(135deg, #4f46e5, #7c3aed); transform: scale(1.05); }
+        .chat-btn:hover { background: rgba(99,102,241,0.3); }
+        
+        .mark-btn { background: rgba(34,197,94,0.2); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); padding: 0.2rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+        .mark-btn.too-hard { background: rgba(249,115,22,0.2); color: #fb923c; border-color: rgba(249,115,22,0.3); }
+        .mark-btn:hover { opacity: 0.8; }
+        .mark-btn.disabled { opacity: 0.6; cursor: not-allowed; }
+        .candidate-item.marked-solved { border-left: 3px solid #4ade80; }
+        .candidate-item.marked-solved .candidate-title { text-decoration: line-through; color: #64748b; }
+        .candidate-item.marked-too-hard { border-left: 3px solid #fb923c; }
+        .candidate-item.marked-too-hard .candidate-title { text-decoration: line-through; color: #64748b; }
+        .marked-badge { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.7rem; margin-left: 0.5rem; }
+        .marked-badge.solved { background: rgba(34,197,94,0.3); color: #4ade80; }
+        .marked-badge.too-hard { background: rgba(249,115,22,0.3); color: #fb923c; }
+
+        .chat-messages { height: 400px; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+        .chat-messages::-webkit-scrollbar { width: 8px; }
+        .chat-messages::-webkit-scrollbar-track { background: #1e293b; }
+        .chat-messages::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+        .message { max-width: 80%; padding: 1rem; border-radius: 12px; line-height: 1.6; }
+        .message.user { align-self: flex-end; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+        .message.assistant { align-self: flex-start; background: #334155; color: #e2e8f0; }
+        .message .meta { font-size: 0.7rem; opacity: 0.7; margin-bottom: 0.3rem; }
+
+        .chat-input-area { padding: 1rem 1.5rem; border-top: 1px solid #334155; }
+        .chat-input-wrapper { display: flex; gap: 0.8rem; }
+        .chat-input { flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 0.8rem 1rem; color: #e2e8f0; font-size: 0.9rem; resize: none; outline: none; transition: all 0.2s; }
+        .chat-input:focus { border-color: #6366f1; }
+        .chat-send { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .chat-send:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+        .chat-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .chat-hint { text-align: center; padding: 1rem; color: #64748b; font-size: 0.85rem; }
+        .chat-hint kbd { background: #334155; padding: 0.2rem 0.5rem; border-radius: 4px; font-family: monospace; }
+
+        /* 推荐题目卡片 */
+        .recommendation-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #6366f1; border-radius: 8px; padding: 1rem; margin-top: 0.8rem; }
+        .recommendation-card h4 { color: #a78bfa; margin: 0 0 0.5rem 0; font-size: 0.9rem; }
+        .recommendation-card .rec-list { list-style: none; padding: 0; margin: 0; }
+        .recommendation-card .rec-item { padding: 0.5rem 0; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        .recommendation-card .rec-item:last-child { border-bottom: none; }
+        .recommendation-card .rec-link { color: #60a5fa; text-decoration: none; font-size: 0.85rem; }
+        .recommendation-card .rec-link:hover { text-decoration: underline; }
+        .recommendation-card .rec-tag { font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 4px; background: rgba(99,102,241,0.2); color: #a78bfa; }
+
+        .typing-indicator { display: flex; gap: 4px; padding: 1rem; background: #334155; border-radius: 12px; align-self: flex-start; }
+        .typing-indicator span { width: 8px; height: 8px; background: #64748b; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out; }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+        .open-chat-btn { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .open-chat-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+        
+        .filter-bar { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .filter-btn { background: #334155; color: #94a3b8; border: none; padding: 0.4rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+        .filter-btn:hover, .filter-btn.active { background: #6366f1; color: white; }
+        
+        .problems-section { background: #1e293b; border-radius: 12px; padding: 1.5rem; border: 1px solid #334155; }
+        .problems-section h3 { margin-bottom: 1rem; color: #e2e8f0; }
+        
+        .table-container { max-height: 600px; overflow-y: auto; }
+        .table-container::-webkit-scrollbar { width: 8px; }
+        .table-container::-webkit-scrollbar-track { background: #1e293b; }
+        .table-container::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 0.65rem 0.8rem; border-bottom: 1px solid #1e293b; font-size: 0.9rem; }
+        th { position: sticky; top: 0; background: #1e293b; font-weight: 600; color: #64748b; font-size: 0.8rem; text-transform: uppercase; z-index: 10; }
+        tr:hover td { background: rgba(99,102,241,0.05); }
+        
+        .tag { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+        .tag-luogu { background: rgba(59,130,246,0.15); color: #60a5fa; }
+        .tag-noip { background: rgba(168,85,247,0.15); color: #c084fc; }
+        .tag-usaco { background: rgba(34,197,94,0.15); color: #4ade80; }
+        .tag-codeforces { background: rgba(251,146,60,0.15); color: #fb923c; }
+        
+        .cat-tag { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+        
+        /* 洛谷难度颜色 */
+        .diff-tag { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .diff-1 { background: rgba(191,219,254,0.3); color: #93c5fd; }
+        .diff-2 { background: rgba(255,255,255,0.1); color: #d1d5db; }
+        .diff-3 { background: rgba(255,255,255,0.15); color: #fbbf24; }
+        .diff-4 { background: rgba(251,146,60,0.2); color: #fb923c; }
+        .diff-5 { background: rgba(239,68,68,0.2); color: #f87171; }
+        .diff-6 { background: rgba(168,85,247,0.2); color: #c084fc; }
+        .diff-7 { background: rgba(236,72,153,0.2); color: #f472b6; }
+        
+        .status-solved { color: #4ade80; }
+        .status-solved::before { content: '✓ '; }
+        
+        .problem-link { color: #60a5fa; text-decoration: none; }
+        .problem-link:hover { text-decoration: underline; }
+        
+        .empty { text-align: center; padding: 3rem; color: #64748b; }
+        
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+            .header-actions { position: static; margin-top: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>刷题管理系统</h1>
+        <p>自动分类 · 难度追踪 · 知识点统计 · AI 智能推荐</p>
+        <div class="header-actions">
+            <a href="/plan" class="btn btn-primary">🎯 训练计划</a>
+            <a href="/guide" class="btn">📖 命名手册</a>
+            <a href="/settings" class="btn">⚙️ 设置</a>
+            <button class="btn" onclick="rescanFiles()" id="rescan-btn">🔄 重新扫描</button>
+            <button class="btn" onclick="window.location.reload()">↻ 刷新页面</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="number" id="total-count">-</div>
+                <div class="label">总题数</div>
+                <div class="trend" style="font-size: 0.75rem; margin-top: 0.5rem; color: #94a3b8">
+                    本地: <span id="local-count">-</span> | 平台: <span id="platform-count">-</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="solved-count">-</div>
+                <div class="label">已解决（本地）</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="categories-count">-</div>
+                <div class="label">知识点分类</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="avg-difficulty">-</div>
+                <div class="label">平均难度 (1-10)</div>
+                <div class="trend" style="font-size: 0.7rem; margin-top: 0.5rem; color: #94a3b8">
+                    已统一各平台难度标准
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-panel active" id="chat-panel">
+            <div class="chat-header">
+                <h3>AI 智能推荐</h3>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="chat-btn" onclick="showCandidates()">📋 候选题目</button>
+                    <button class="chat-close" onclick="toggleChat()">最小化</button>
+                </div>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="chat-hint">
+                    🤖 告诉我你想要什么类型的题目，我来为你推荐！<br><br>
+                    例如：<br>
+                    - "推荐5道动态规划题目"<br>
+                    - "我想练习图论，难度适中"<br>
+                    - "推荐一些竞赛常考的贪心题"<br><br>
+                    AI会生成候选题目池，你可以从中选择加入每日计划。
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <div class="chat-input-wrapper">
+                    <textarea id="chat-input" class="chat-input" rows="1" placeholder="输入你的需求..." onkeydown="if(event.key === 'Enter' && !event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+                    <button id="chat-send" class="chat-send" onclick="sendMessage()">发送</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 最小化后的恢复按钮 -->
+        <button id="restore-ai-btn" class="restore-ai-btn" onclick="toggleChat()" style="display: none;">
+            🤖 AI助手
+        </button>
+
+        <!-- 候选题目池面板 -->
+        <div class="candidates-panel" id="candidates-panel" style="display: none;">
+            <div class="candidates-header">
+                <h3>📋 候选题目池</h3>
+                <div>
+                    <button class="chat-btn" onclick="analyzeCandidateTags()" style="background: rgba(34,197,94,0.2); color: #4ade80;">🤖 AI分析标签</button>
+                    <button class="chat-btn" onclick="clearCandidates()" style="background: rgba(239,68,68,0.2); color: #f87171;">🗑️ 一键清除</button>
+                    <button class="chat-btn" onclick="addToDailyPlan()">➕ 加入每日计划</button>
+                    <button class="chat-btn" onclick="showCandidates()">返回对话</button>
+                </div>
+            </div>
+            <div class="candidates-list" id="candidates-list">
+                <div class="chat-hint" style="padding: 2rem;">点击"📋 候选题目"查看AI推荐的题目</div>
+            </div>
+        </div>
+        
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>知识点分布</h3>
+                <canvas id="categoryChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>难度分布</h3>
+                <canvas id="difficultyChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="problems-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3>全部题目</h3>
+                <button class="chat-btn" onclick="analyzeAllProblems()" style="background: rgba(34,197,94,0.2); color: #4ade80;">🤖 AI分析分类</button>
+            </div>
+            <div class="filter-bar" id="filter-bar"></div>
+            <div class="table-container" id="problems-list">
+                <div class="empty">加载中...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const DIFF_NAMES = {
+            1: '入门', 2: '普及-', 3: '普及/提高-', 
+            4: '普及+/提高', 5: '提高+/省选-', 
+            6: '省选/NOI-', 7: 'NOI/NOI+',
+            8: '大师-', 9: '大师', 10: '大师+'
+        };
+        
+        const PLATFORM_NAMES = {
+            luogu: '洛谷', noip: 'NOIP', usaco: 'USACO',
+            codeforces: 'CF', nowcoder: '牛客', leetcode: 'LC'
+        };
+
+        // 英文分类到中文的映射表（用于平台题目的分类）
+        const CATEGORY_TRANSLATION = {
+            'math': '数学',
+            'dp': '动态规划',
+            'greedy': '贪心',
+            'graph': '图论',
+            'data_structure': '数据结构',
+            'string': '字符串',
+            'number_theory': '数论',
+            'brute': '暴力',
+            'simulation': '模拟',
+            'implementation': '实现',
+            'bitmasks': '位运算',
+            'brute force': '暴力',
+            'combinatorics': '组合数学',
+            'constructive': '构造',
+            'constructive algorithms': '构造算法',
+            'data structures': '数据结构',
+            'dynamic programming': '动态规划',
+            'divide and conquer': '分治',
+            'games': '博弈论',
+            'geometry': '几何',
+            'graphs': '图论',
+            'hashing': '哈希',
+            'mathematics': '数学',
+            'number theory': '数论',
+            'probabilities': '概率',
+            'probability': '概率',
+            'string suffix structures': '字符串后缀结构',
+            'strings': '字符串',
+            'trees': '树',
+            'dfs': '深度优先搜索',
+            'bfs': '广度优先搜索',
+            'binary search': '二分查找',
+            'sorting': '排序',
+            'sort': '排序',
+            'shortest paths': '最短路',
+            'shortest path': '最短路',
+            'dfs and similar': 'DFS及其变种',
+            'bfs and similar': 'BFS及其变种',
+            'graph matchings': '二分图匹配',
+            '2-sat': '2-SAT',
+            'meet-in-the-middle': '折半搜索',
+            'flow': '网络流',
+            'flows': '网络流',
+            'dsu': '并查集',
+            'union-find': '并查集',
+            'matrices': '矩阵',
+            'schedules': '调度',
+            'sortings': '排序',
+            'ternary search': '三分查找',
+            'two pointers': '双指针',
+            'fft': '快速傅里叶变换',
+            'chinese remainder theorem': '中国剩余定理',
+            'expression parsing': '表达式解析',
+            'line sweep': '扫描线'
+        };
+
+        let categoryChart = null, difficultyChart = null;
+        let categoriesInfo = {};
+        let allProblems = [];
+        let currentFilter = 'all';
+        let chatHistory = [];
+        
+        // 安全的 HTML 转义函数（但保留已转换的 Markdown 标签）
+        function safeEscape(text) {
+            // 先把已转换的 Markdown 标签临时替换为占位符
+            let placeholders = [];
+            text = text.replace(/<strong>[\s\S]*?<\/strong>/g, (match) => {
+                placeholders.push(match);
+                return '__HTML_PLACEHOLDER_' + (placeholders.length - 1) + '__';
+            });
+            text = text.replace(/<em>[\s\S]*?<\/em>/g, (match) => {
+                placeholders.push(match);
+                return '__HTML_PLACEHOLDER_' + (placeholders.length - 1) + '__';
+            });
+            text = text.replace(/<a[\s\S]*?<\/a>/g, (match) => {
+                placeholders.push(match);
+                return '__HTML_PLACEHOLDER_' + (placeholders.length - 1) + '__';
+            });
+            
+            // 转义普通文本
+            text = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            
+            // 恢复 HTML 标签
+            placeholders.forEach((p, i) => {
+                text = text.replace('__HTML_PLACEHOLDER_' + i + '__', p);
+            });
+            
+            return text;
+        }
+        
+        // 处理单行文本中的 Markdown 格式（加粗、斜体、链接）
+        function processInlineMarkdown(text) {
+            // 处理 [链接](url) -> <a href="url">链接</a>
+            text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: #60a5fa;">$1</a>');
+            // 处理 **加粗**
+            text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            // 处理 *斜体*
+            text = text.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>');
+            return text;
+        }
+        
+        // 简单的 Markdown 转 HTML 函数（适配新版 AI 输出格式）
+        function parseMarkdown(text) {
+            if (!text) return '';
+            
+            let lines = text.split('\n');
+            let result = [];
+            let i = 0;
+            
+            while (i < lines.length) {
+                let line = lines[i];
+                
+                // 处理标题 ### xxx
+                if (line.startsWith('### ')) {
+                    result.push('<h3>' + safeEscape(line.slice(4)) + '</h3>');
+                    i++;
+                    continue;
+                }
+                
+                // 处理标题 ## xxx
+                if (line.startsWith('## ')) {
+                    result.push('<h2>' + safeEscape(line.slice(3)) + '</h2>');
+                    i++;
+                    continue;
+                }
+                
+                // 处理有序列表 1. xxx
+                if (/^\d+\.\s/.test(line)) {
+                    let content = line.slice(line.indexOf('.') + 2);
+                    // 先处理内联 Markdown，再安全转义
+                    content = processInlineMarkdown(content);
+                    result.push(`<div class="problem-item">${safeEscape(content)}</div>`);
+                    i++;
+                    continue;
+                }
+                
+                // 处理搜索链接行
+                if (line.match(/洛谷搜索[：:]/)) {
+                    let keywords = line.replace(/洛谷搜索[：:]\s*/, '').trim();
+                    let url = 'https://www.luogu.com.cn/problem/list?keyword=' + encodeURIComponent(keywords);
+                    result.push(`<div class="search-link"><a href="${url}" target="_blank" class="luogu-link">🔍 洛谷搜索：${safeEscape(keywords)}</a></div>`);
+                    i++;
+                    continue;
+                }
+                
+                if (line.match(/CF搜索[：:]/)) {
+                    let keywords = line.replace(/CF搜索[：:]\s*/, '').trim();
+                    let url = 'https://codeforces.com/problemset?order=BY_RATING_ASC&tags=' + encodeURIComponent(keywords);
+                    result.push(`<div class="search-link"><a href="${url}" target="_blank" class="cf-link">🔍 CF搜索：${safeEscape(keywords)}</a></div>`);
+                    i++;
+                    continue;
+                }
+                
+                // 处理评析行
+                if (line.startsWith('评析')) {
+                    let analysis = line.replace(/评析[：:]/, '<strong>评析：</strong>');
+                    result.push(`<div class="problem-analysis">${safeEscape(analysis)}</div>`);
+                    i++;
+                    continue;
+                }
+                
+                // 处理无序列表 - xxx
+                if (line.startsWith('- ')) {
+                    let content = line.slice(2);
+                    content = processInlineMarkdown(content);
+                    result.push('<li>' + safeEscape(content) + '</li>');
+                    i++;
+                    continue;
+                }
+                
+                // 处理普通文本
+                if (line.trim() === '') {
+                    result.push('');
+                } else {
+                    let content = processInlineMarkdown(line);
+                    result.push('<p>' + safeEscape(content) + '</p>');
+                }
+                i++;
+            }
+            
+            // 包装有序列表
+            let html = result.join('\n');
+            html = html.replace(/(<li>[\s\S]*?<\/li>\n?)+/g, '<ul>$&</ul>');
+            
+            return html;
+        }
+        
+        // HTML 转义函数
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        
+        // 删除平台题目
+        async function deletePlatformProblem(platform, problemId) {
+            if (!confirm(`确定要删除 ${platform} - ${problemId} 吗？`)) return;
+            
+            try {
+                const res = await fetch('/api/platform-problem/delete', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({platform, problem_id: problemId})
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    alert('题目已删除');
+                    // 重新加载数据
+                    await loadStats();
+                    await loadProblems();
+                } else {
+                    alert('删除失败: ' + (data.error || '未知错误'));
+                }
+            } catch (e) {
+                alert('删除失败: ' + e);
+            }
+        }
+        
+        async function init() {
+            await loadCategories();
+            // 加载统计和题目列表
+            await Promise.all([
+                loadStats(),
+                loadProblems()
+            ]);
+            // 检查并自动刷新候选池
+            await checkAndRefreshCandidates();
+        }
+        
+        // 检查并刷新候选池
+        async function checkAndRefreshCandidates() {
+            try {
+                const configRes = await fetch('/api/config');
+                const config = await configRes.json();
+                
+                // 获取当前时间和设置的重置小时
+                const now = new Date();
+                const resetHour = config.candidate_reset_hour !== undefined ? config.candidate_reset_hour : 9;
+                
+                // 判断是否需要刷新：当前小时 >= 设置时间 且 候选池为空 或 已超过1天
+                const candidatesRes = await fetch('/api/candidates');
+                const candidates = await candidatesRes.json();
+                const hasCandidates = candidates && candidates.length > 0;
+                
+                // 检查是否到达刷新时间
+                const currentHour = now.getHours();
+                const needRefresh = currentHour >= resetHour && !hasCandidates;
+                
+                if (needRefresh || !hasCandidates) {
+                    showLoading('🤖 AI 正在为你推荐题目...');
+                    await loadCandidates();
+                    hideLoading();
+                } else {
+                    await loadCandidates();
+                }
+            } catch (e) {
+                console.error('检查候选池失败:', e);
+                await loadCandidates();
+            }
+        }
+        
+        // 显示加载提示
+        function showLoading(message) {
+            const container = document.getElementById('candidates-container');
+            if (container) {
+                container.innerHTML = `<div style="text-align:center;padding:2rem;color:#64748b;">${message}</div>`;
+            }
+        }
+        
+        // 隐藏加载提示
+        function hideLoading() {
+            // 加载完成后会自动渲染，不需要额外操作
+        }
+        
+        async function loadCategories() {
+            const res = await fetch('/api/categories');
+            categoriesInfo = await res.json();
+            
+            const bar = document.getElementById('filter-bar');
+            let html = '<button class="filter-btn active" onclick="filterBy(\'all\')">全部</button>';
+            for (const [key, info] of Object.entries(categoriesInfo)) {
+                html += `<button class="filter-btn" onclick="filterBy('${key}')">${info.name}</button>`;
+            }
+            bar.innerHTML = html;
+        }
+        
+        async function loadStats() {
+            const res = await fetch('/api/stats');
+            const stats = await res.json();
+
+            // 总题数 = 本地 + 平台
+            document.getElementById('total-count').textContent = stats.total;
+            document.getElementById('local-count').textContent = stats.local_total || 0;
+            document.getElementById('platform-count').textContent = stats.platform_total || 0;
+            document.getElementById('solved-count').textContent = stats.local_solved || stats.solved;
+
+            // 使用合并的统计数据（本地 + 平台）
+            const combinedStats = stats.combined || stats;
+            document.getElementById('categories-count').textContent = Object.keys(combinedStats.by_category).length;
+
+            const diffStats = combinedStats.by_difficulty;
+            let totalScore = 0, totalCount = 0;
+            for (const [diff, count] of Object.entries(diffStats)) {
+                totalScore += parseFloat(diff) * count;
+                totalCount += count;
+            }
+            const avg = totalCount > 0 ? (totalScore / totalCount).toFixed(1) : '-';
+            document.getElementById('avg-difficulty').textContent = avg;
+
+            updateCategoryChart(combinedStats.by_category);
+            updateDifficultyChart(diffStats);
+        }
+        
+        async function rescanFiles() {
+            const btn = document.getElementById('rescan-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ 扫描中...';
+
+            try {
+                const response = await fetch('/api/scan', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.scanned > 0) {
+                    alert(`✅ 扫描完成！新发现 ${data.scanned} 个文件`);
+                } else {
+                    alert('✅ 扫描完成，没有发现新文件');
+                }
+
+                // 刷新数据
+                await Promise.all([loadStats(), loadProblems()]);
+            } catch (e) {
+                alert('❌ 扫描失败: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔄 重新扫描';
+            }
+        }
+        
+        function getCategoryInfo(key) {
+            // 先在顶级分类中查找
+            if (categoriesInfo[key]) {
+                return categoriesInfo[key];
+            }
+            // 在子分类中查找
+            for (const [parentKey, parentInfo] of Object.entries(categoriesInfo)) {
+                if (parentInfo.subcategories && parentInfo.subcategories[key]) {
+                    return {
+                        name: parentInfo.subcategories[key],
+                        color: parentInfo.color
+                    };
+                }
+            }
+            // 找不到则使用翻译表
+            const translated = CATEGORY_TRANSLATION[key] || key;
+            return { name: translated, color: '#6366f1' };
+        }
+
+        function updateCategoryChart(data) {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const labels = [], values = [], colors = [];
+
+            const sorted = Object.entries(data).sort((a, b) => b[1] - a[1]);
+            for (const [key, count] of sorted) {
+                const info = getCategoryInfo(key);
+                labels.push(info.name || key);
+                values.push(count);
+                colors.push(info.color || '#6366f1');
+            }
+
+            if (categoryChart) categoryChart.destroy();
+            categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0 }] },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'right', labels: { color: '#94a3b8', padding: 12, font: { size: 12 } } } }
+                }
+            });
+        }
+
+
+        function updateDifficultyChart(data) {
+            const ctx = document.getElementById('difficultyChart').getContext('2d');
+            const labels = [], values = [], bgColors = [], borderColors = [];
+            
+            const diffColors = {
+                1: { bg: 'rgba(147,197,253,0.3)', border: '#93c5fd' },
+                2: { bg: 'rgba(209,213,219,0.3)', border: '#d1d5db' },
+                3: { bg: 'rgba(251,191,36,0.3)', border: '#fbbf24' },
+                4: { bg: 'rgba(251,146,60,0.3)', border: '#fb923c' },
+                5: { bg: 'rgba(248,113,113,0.3)', border: '#f87171' },
+                6: { bg: 'rgba(192,132,252,0.3)', border: '#c084fc' },
+                7: { bg: 'rgba(244,114,182,0.3)', border: '#f472b6' },
+                8: { bg: 'rgba(167,139,250,0.3)', border: '#a78bfa' },
+                9: { bg: 'rgba(99,102,241,0.3)', border: '#6366f1' },
+                10: { bg: 'rgba(236,72,153,0.3)', border: '#ec4899' },
+            };
+            
+            for (const [diff, count] of Object.entries(data)) {
+                const d = parseInt(diff);
+                labels.push(DIFF_NAMES[d] || `难度${d}`);
+                values.push(count);
+                const c = diffColors[d] || { bg: 'rgba(99,102,241,0.3)', border: '#6366f1' };
+                bgColors.push(c.bg);
+                borderColors.push(c.border);
+            }
+            
+            if (difficultyChart) difficultyChart.destroy();
+            difficultyChart = new Chart(ctx, {
+                type: 'bar',
+                data: { 
+                    labels, 
+                    datasets: [{ label: '题目数量', data: values, backgroundColor: bgColors, borderColor: borderColors, borderWidth: 2, borderRadius: 6 }] 
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 5, color: '#64748b' }, grid: { color: '#1e293b' } },
+                        x: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+        
+        async function loadProblems() {
+            const res = await fetch('/api/problems');
+            allProblems = await res.json();
+            renderProblems();
+        }
+        
+        function filterBy(category) {
+            currentFilter = category;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderProblems();
+        }
+        
+        function renderProblems() {
+            const container = document.getElementById('problems-list');
+            let filtered = allProblems;
+            
+            if (currentFilter !== 'all') {
+                filtered = allProblems.filter(p => p.category === currentFilter);
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty">该分类暂无题目</div>';
+                return;
+            }
+            
+            let html = `<table>
+                <thead><tr>
+                    <th>状态</th><th>平台</th><th>题号</th><th>标题</th><th>难度</th><th>分类</th><th>行数</th><th>操作</th>
+                </tr></thead><tbody>`;
+            
+            for (const p of filtered) {
+                const statusHtml = p.status === 'solved' ? '<span class="status-solved">已解决</span>' : '待完成';
+                
+                let platformHtml = '-';
+                if (p.platform) {
+                    const cls = `tag tag-${p.platform}`;
+                    platformHtml = `<span class="${cls}">${PLATFORM_NAMES[p.platform] || p.platform}</span>`;
+                }
+                
+                // 题号 + 链接
+                let idHtml = p.problem_id || '-';
+                if (p.url) {
+                    idHtml = `<a href="${p.url}" target="_blank" rel="noopener noreferrer" class="problem-link">${p.problem_id} ↗</a>`;
+                }
+                
+                let diffHtml = '-';
+                if (p.difficulty) {
+                    const name = DIFF_NAMES[p.difficulty] || `D${p.difficulty}`;
+                    diffHtml = `<span class="diff-tag diff-${p.difficulty}">${name}</span>`;
+                }
+                
+                const catInfo = getCategoryInfo(p.category);
+                const catName = catInfo.name || p.category || '未分类';
+                const catColor = catInfo.color || '#6366f1';
+                const catHtml = `<span class="cat-tag" style="background:${catColor}22;color:${catColor}">${catName}</span>`;
+                
+                // 标题显示
+                const titleText = p.title || p.file_name;
+                const titleHtml = p.url 
+                    ? `<a href="${p.url}" target="_blank" rel="noopener noreferrer" class="problem-link" title="点击跳转到题目页面">${titleText}</a>`
+                    : titleText;
+                
+                // 操作按钮：只有平台题目（有platform和problem_id但没有file_path）才能删除
+                let actionHtml = '-';
+                if (p.platform && p.problem_id && !p.file_path) {
+                    const pEsc = escapeHtml(p.platform);
+                    const idEsc = escapeHtml(p.problem_id);
+                    actionHtml = `<button onclick="deletePlatformProblem('${pEsc}','${idEsc}')" class="btn-delete" title="删除此题目">🗑️</button>`;
+                }
+                
+                html += `<tr>
+                    <td>${statusHtml}</td>
+                    <td>${platformHtml}</td>
+                    <td style="font-family:monospace">${idHtml}</td>
+                    <td>${titleHtml}</td>
+                    <td>${diffHtml}</td>
+                    <td>${catHtml}</td>
+                    <td style="color:#64748b">${p.lines_of_code || '-'}</td>
+                    <td>${actionHtml}</td>
+                </tr>`;
+            }
+            
+            html += '</tbody></table>';
+            html += `<div style="text-align:center;padding:0.8rem;color:#475569;font-size:0.8rem">共 ${filtered.length} 道题目</div>`;
+            container.innerHTML = html;
+        }
+
+        // AI对话功能
+        let allCandidates = [];
+        let aiPanelMinimized = false;
+
+        function toggleChat() {
+            const chatPanel = document.getElementById('chat-panel');
+            const candidatesPanel = document.getElementById('candidates-panel');
+            const restoreBtn = document.getElementById('restore-ai-btn');
+            
+            aiPanelMinimized = !aiPanelMinimized;
+            
+            if (aiPanelMinimized) {
+                // 最小化：隐藏两个面板，显示恢复按钮
+                chatPanel.style.display = 'none';
+                candidatesPanel.style.display = 'none';
+                restoreBtn.style.display = 'block';
+            } else {
+                // 恢复：显示 chat-panel，隐藏 candidates-panel 和恢复按钮
+                chatPanel.style.display = 'block';
+                chatPanel.classList.remove('hidden');
+                candidatesPanel.style.display = 'none';
+                restoreBtn.style.display = 'none';
+                document.getElementById('chat-input').focus();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // 添加用户消息
+            addMessage('user', message);
+            input.value = '';
+
+            // 显示加载中
+            const loadingId = addTypingIndicator();
+
+            // 发送到后端
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message, history: chatHistory })
+                });
+                const data = await response.json();
+
+                // 移除加载中
+                removeTypingIndicator(loadingId);
+
+                if (data.success) {
+                    let reply = data.reply;
+                    
+                    // 如果有候选题目，显示提示
+                    if (data.candidates && data.candidates.length > 0) {
+                        allCandidates = data.candidates;
+                        reply += `\n\n✅ 已生成 ${data.candidates.length} 道候选题目！点击下方「📋 候选题目」查看并选择加入每日计划。`;
+                    }
+                    
+                    addMessage('assistant', reply);
+                    chatHistory.push({ role: 'user', content: message });
+                    chatHistory.push({ role: 'assistant', content: data.reply });
+                } else {
+                    addMessage('assistant', '❌ ' + (data.error || '请求失败'));
+                }
+            } catch (e) {
+                removeTypingIndicator(loadingId);
+                addMessage('assistant', '❌ 请求失败: ' + e.message);
+            }
+        }
+
+        // 显示/隐藏候选题目池
+        async function showCandidates() {
+            const chatPanel = document.getElementById('chat-panel');
+            const candidatesPanel = document.getElementById('candidates-panel');
+            
+            // 如果候选题目面板正在显示，切换回对话面板
+            if (candidatesPanel.style.display === 'block') {
+                candidatesPanel.style.display = 'none';
+                chatPanel.style.display = 'block';
+                return;
+            }
+            
+            // 如果 AI 面板被最小化了，先恢复
+            if (aiPanelMinimized) {
+                toggleChat(); // 恢复显示
+            }
+            
+            // 加载候选题目
+            try {
+                const response = await fetch('/api/candidates?limit=100');
+                const data = await response.json();
+                
+                if (data.success && data.candidates.length > 0) {
+                    allCandidates = data.candidates;
+                    renderCandidates(data.candidates);
+                    chatPanel.style.display = 'none';
+                    candidatesPanel.style.display = 'block';
+                } else {
+                    document.getElementById('candidates-list').innerHTML = 
+                        '<div class="chat-hint" style="padding: 2rem;">暂无候选题目，请先在对话框中描述你想要的题目类型</div>';
+                    chatPanel.style.display = 'none';
+                    candidatesPanel.style.display = 'block';
+                }
+            } catch (e) {
+                alert('加载候选题目失败: ' + e.message);
+            }
+        }
+
+        function renderCandidates(candidates) {
+            const container = document.getElementById('candidates-list');
+            container.innerHTML = candidates.map((c, i) => {
+                const escapedPlatform = escapeHtml(c.platform || '');
+                const escapedProblemId = escapeHtml(c.problem_id || '');
+                return `
+                <div class="candidate-item" id="candidate-${i}">
+                    <div class="candidate-item-header">
+                        <div>
+                            <span class="candidate-title">${escapeHtml(c.title || c.problem_id)}</span>
+                            <span class="candidate-platform ${escapeHtml(c.platform)}">${escapeHtml(c.platform).toUpperCase()} ${escapedProblemId}</span>
+                        </div>
+                        <input type="checkbox" class="select-checkbox" id="select-${i}" data-index="${i}">
+                    </div>
+                    <div class="candidate-difficulty">难度: ${c.difficulty || c.difficulty_normalized}</div>
+                    <div class="candidate-tags">${(c.tags || []).map(t => `#${escapeHtml(t)}`).join(' ')}</div>
+                    <div class="candidate-reason">${escapeHtml(c.reason || '')}</div>
+                    <div class="candidate-actions">
+                        <a href="${c.url || '#'}" class="candidate-link" target="_blank">打开题目 →</a>
+                        <button class="mark-btn" onclick="markCandidate('${escapedPlatform}', '${escapedProblemId}', 'solved', ${i})">✓ 已刷过</button>
+                        <button class="mark-btn too-hard" onclick="markCandidate('${escapedPlatform}', '${escapedProblemId}', 'too_hard', ${i})">太难了</button>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        // 标记题目
+        async function markCandidate(platform, problemId, action, index) {
+            const item = document.getElementById(`candidate-${index}`);
+            if (!item) return;
+            
+            // 获取当前标记状态
+            const isSolved = item.classList.contains('marked-solved');
+            const isTooHard = item.classList.contains('marked-too-hard');
+            
+            // 判断操作：再次点击相同标记 = 取消，点击不同标记 = 切换
+            let newAction = action;
+            if (action === 'solved' && isSolved) {
+                newAction = 'cancel'; // 取消标记
+            } else if (action === 'too_hard' && isTooHard) {
+                newAction = 'cancel'; // 取消标记
+            }
+            // 如果点击不同标记，newAction 保持原值，即切换标记
+            
+            try {
+                const response = await fetch('/api/candidates/mark', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ platform, problem_id: problemId, action: newAction })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 移除所有标记状态
+                    item.classList.remove('marked-solved', 'marked-too-hard');
+                    
+                    // 移除徽章
+                    const titleEl = item.querySelector('.candidate-title');
+                    const existingBadge = titleEl?.querySelector('.marked-badge');
+                    if (existingBadge) existingBadge.remove();
+                    
+                    if (newAction === 'cancel') {
+                        // 取消标记 - 恢复原始状态
+                        item.querySelectorAll('.mark-btn').forEach(btn => btn.disabled = false);
+                        
+                        // 移回顶部（恢复原始顺序）
+                        const list = document.getElementById('candidates-list');
+                        list.insertBefore(item, list.firstChild);
+                        
+                        alert('已取消标记');
+                    } else {
+                        // 添加新标记
+                        const badgeClass = newAction === 'solved' ? 'solved' : 'too-hard';
+                        const badgeText = newAction === 'solved' ? '✓ 已刷过' : '⚠ 太难了';
+                        const markClass = newAction === 'solved' ? 'marked-solved' : 'marked-too-hard';
+                        
+                        item.classList.add(markClass);
+                        
+                        // 添加标记徽章
+                        if (titleEl) {
+                            const badge = document.createElement('span');
+                            badge.className = `marked-badge ${badgeClass}`;
+                            badge.textContent = badgeText;
+                            titleEl.appendChild(badge);
+                        }
+                        
+                        // 禁用按钮
+                        item.querySelectorAll('.mark-btn').forEach(btn => btn.disabled = true);
+                        
+                        // 移动到列表底部
+                        const list = document.getElementById('candidates-list');
+                        list.appendChild(item);
+                        
+                        alert(data.message);
+                    }
+                }
+            } catch (e) {
+                alert('标记失败: ' + e.message);
+            }
+        }
+
+        // 一键清除候选题目
+        function clearCandidates() {
+            if (!confirm('确定要清除所有候选题目吗？')) return;
+            allCandidates = [];
+            document.getElementById('candidates-list').innerHTML = '<div class="chat-hint" style="padding: 2rem;">已清除所有候选题目，可以重新向AI提问获取推荐</div>';
+        }
+
+        // AI分析全部题目的分类
+        async function analyzeAllProblems() {
+            if (!confirm('确定要使用AI分析所有题目的分类吗？这可能需要几分钟时间。')) return;
+
+            const btn = document.querySelector('button[onclick="analyzeAllProblems()"]');
+            btn.disabled = true;
+            btn.textContent = '分析中...';
+
+            try {
+                const response = await fetch('/api/problems/analyze-tags', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(data.message);
+                    loadProblems(); // 刷新列表
+                    loadStats(); // 刷新统计
+                } else {
+                    alert('分析失败: ' + data.error);
+                }
+            } catch (e) {
+                alert('分析失败: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🤖 AI分析分类';
+            }
+        }
+
+        // AI分析已刷过题目的标签
+        async function analyzeCandidateTags() {
+            if (!confirm('确定要使用AI分析所有已刷过题目的标签吗？这可能需要一些时间。')) return;
+
+            const btn = document.querySelector('button[onclick="analyzeCandidateTags()"]');
+            btn.disabled = true;
+            btn.textContent = '分析中...';
+
+            try {
+                const response = await fetch('/api/candidates/analyze-tags', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(data.message);
+                    showCandidates(); // 刷新列表
+                } else {
+                    alert('分析失败: ' + data.error);
+                }
+            } catch (e) {
+                alert('分析失败: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🤖 AI分析标签';
+            }
+        }
+
+        // 加入每日计划
+        async function addToDailyPlan() {
+            const selected = document.querySelectorAll('.select-checkbox:checked');
+            if (selected.length === 0) {
+                alert('请先选择要加入每日计划的题目');
+                return;
+            }
+
+            const selectedProblems = [];
+            selected.forEach(cb => {
+                const idx = parseInt(cb.dataset.index);
+                const c = allCandidates[idx];
+                selectedProblems.push({
+                    platform: c.platform,
+                    problem_id: c.problem_id,
+                    title: c.title,
+                    difficulty: c.difficulty || c.difficulty_normalized || 5,
+                    tags: c.tags || [],
+                    url: c.url,
+                    reason: c.reason
+                });
+            });
+
+            // 直接调用 API 保存到数据库
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                let addedCount = 0;
+                
+                for (const problem of selectedProblems) {
+                    const response = await fetch('/api/task/add', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            date: today,
+                            task: problem
+                        })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        addedCount++;
+                    }
+                }
+                
+                alert(`已将 ${addedCount} 道题目添加到今日计划！`);
+                window.location.href = '/plan';
+            } catch (e) {
+                alert('添加失败: ' + e.message);
+            }
+        }
+
+        function addMessage(role, content) {
+            const container = document.getElementById('chat-messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${role}`;
+
+            // 处理Markdown（简单版本，支持链接）
+            let processedContent = content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/### (.*)/g, '<h4>$1</h4>')
+                .replace(/## (.*)/g, '<h3>$1</h3>')
+                .replace(/- (.*)/g, '<li>$1</li>')
+                // 处理Markdown链接 [文本](URL)
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color: #60a5fa; text-decoration: underline;">$1</a>')
+                .replace(/\n/g, '<br>');
+
+            msgDiv.innerHTML = processedContent;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function parseRecommendations(text) {
+            const items = [];
+            const lines = text.split('\n');
+
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine || trimmedLine.startsWith('推荐题目') || trimmedLine.startsWith('#')) continue;
+
+                // 尝试多种匹配格式
+                let title = '';
+                let platform = '洛谷';
+                let problemId = '';
+
+                // 格式1: 1. 题目名 [P1024] [洛谷]
+                let match = trimmedLine.match(/^\d+\.\s+(.+?)\s*\[(P\d+|CF\d+[A-Z]\d*|AT\d+|USACO\s+\w+)\]\s*\[([^\]]+)\]/i);
+                if (match) {
+                    title = match[1].trim();
+                    problemId = match[2].trim();
+                    platform = match[3].trim();
+                }
+                // 格式2: 1. 题目名 [平台] (旧格式，兼容)
+                else {
+                    match = trimmedLine.match(/^\d+\.\s+(.+?)\s*\[([^\]]+)\]/);
+                    if (match) {
+                        title = match[1].trim();
+                        platform = match[2].trim();
+                        // 尝试从标题中提取题目编号
+                        const luoguMatch = title.match(/[PBT]\d+/);
+                        if (luoguMatch) problemId = luoguMatch[0];
+                    }
+                    // 格式3: - 题目名 (平台) (旧格式，兼容)
+                    else {
+                        match = trimmedLine.match(/^[-*]\s+(.+?)\s*\(([^)]+)\)/);
+                        if (match) {
+                            title = match[1].trim();
+                            platform = match[2].trim();
+                            // 尝试从标题中提取题目编号
+                            const luoguMatch = title.match(/[PBT]\d+/);
+                            if (luoguMatch) problemId = luoguMatch[0];
+                        }
+                    }
+                }
+
+                if (title) {
+                    // 清理题目标题（去除括号内的额外信息）
+                    title = title.replace(/\s*\([^)]*\)\s*$/, '').trim();
+
+                    // 生成URL
+                    let url = '';
+
+                    // 优先使用提取的题目编号
+                    if (problemId) {
+                        // 洛谷题目
+                        if (problemId.match(/^P\d+$/)) {
+                            url = `https://www.luogu.com.cn/problem/${problemId}`;
+                        }
+                        // 洛谷其他类型
+                        else if (problemId.match(/^[PBTU]\d+$/)) {
+                            url = `https://www.luogu.com.cn/problem/${problemId}`;
+                        }
+                        // Codeforces题目 (CF1234A)
+                        else if (problemId.match(/^CF\d+[A-Z]\d*$/i)) {
+                            const idPart = problemId.slice(2).toUpperCase();
+                            const numPart = idPart.replace(/[A-Z]+$/, '');
+                            const letterPart = idPart.match(/[A-Z]+$/);
+                            if (letterPart) {
+                                url = `https://codeforces.com/problemset/problem/${numPart}/${letterPart[0]}`;
+                            }
+                        }
+                        else {
+                            // 其他格式，使用搜索
+                            url = `https://www.luogu.com.cn/problem/list?keyword=${encodeURIComponent(problemId)}&page=1`;
+                        }
+                    }
+                    // 如果没有提取到题目编号，尝试从标题中查找
+                    else {
+                        const luoguMatch = title.match(/[PBT]\d+/);
+                        if (luoguMatch) {
+                            url = `https://www.luogu.com.cn/problem/${luoguMatch[0]}`;
+                        } else if (platform === '洛谷' || platform === 'Luogu') {
+                            url = `https://www.luogu.com.cn/problem/list?keyword=${encodeURIComponent(title)}&page=1`;
+                        } else if (platform.includes('CF') || platform.includes('Codeforces')) {
+                            const cfMatch = title.match(/\d+[A-Z]/i);
+                            if (cfMatch) {
+                                url = `https://codeforces.com/problemset/problem/${cfMatch[0].slice(0, -1)}/${cfMatch[0].slice(-1)}`;
+                            } else {
+                                url = `https://codeforces.com/problemset?search=${encodeURIComponent(title)}`;
+                            }
+                        } else {
+                            url = `https://www.luogu.com.cn/problem/list?keyword=${encodeURIComponent(title)}&page=1`;
+                        }
+                    }
+
+                    items.push({
+                        title: title,
+                        url: url,
+                        tag: platform
+                    });
+                }
+            }
+            return items;
+        }
+
+        function addTypingIndicator() {
+            const container = document.getElementById('chat-messages');
+            const id = 'typing-' + Date.now();
+            const div = document.createElement('div');
+            div.className = 'typing-indicator';
+            div.id = id;
+            div.innerHTML = '<span></span><span></span><span></span>';
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return id;
+        }
+
+        function removeTypingIndicator(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        init();
+    </script>
+</body>
+</html>

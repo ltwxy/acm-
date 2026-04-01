@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置 - 刷题管理系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif; background: #0f172a; color: #e2e8f0; }
+        
+        .header { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); color: white; padding: 2rem 2rem 1.5rem; }
+        .header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.3rem; }
+        .header-actions { position: absolute; top: 1.5rem; right: 2rem; }
+        .btn { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; text-decoration: none; display: inline-block; }
+        .btn:hover { background: rgba(255,255,255,0.25); }
+        .btn-primary { background: #6366f1; border-color: #6366f1; }
+        .btn-primary:hover { background: #4f46e5; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        
+        .section { background: #1e293b; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; border: 1px solid #334155; }
+        .section h2 { color: #818cf8; margin-bottom: 1.5rem; font-size: 1.2rem; }
+        
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; color: #94a3b8; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .form-group input, .form-group select { 
+            width: 100%; padding: 0.8rem 1rem; 
+            background: #0f172a; border: 1px solid #334155; 
+            border-radius: 8px; color: #e2e8f0; font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus { outline: none; border-color: #6366f1; }
+        .form-group .hint { color: #64748b; font-size: 0.8rem; margin-top: 0.4rem; }
+        
+        .platform-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        .platform-item { background: #0f172a; padding: 1rem; border-radius: 8px; border: 1px solid #334155; }
+        .platform-item h3 { color: #a78bfa; margin-bottom: 0.8rem; font-size: 0.95rem; }
+        
+        .progress-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+        .progress-card { background: #0f172a; padding: 1.2rem; border-radius: 8px; border: 1px solid #334155; text-align: center; }
+        .progress-card .number { font-size: 2rem; font-weight: 700; color: #a78bfa; }
+        .progress-card .label { color: #64748b; font-size: 0.8rem; margin-top: 0.3rem; }
+        
+        .platform-detail { background: #0f172a; padding: 1rem; border-radius: 8px; margin-top: 1rem; border: 1px solid #334155; }
+        .platform-detail h4 { color: #94a3b8; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .platform-detail p { color: #cbd5e1; font-size: 0.85rem; line-height: 1.5; }
+        .error { color: #f87171; font-size: 0.85rem; }
+        
+        .goal-tag {
+            background: rgba(139,92,246,0.15);
+            color: #a78bfa;
+            border: 1px solid rgba(139,92,246,0.3);
+            padding: 0.35rem 0.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .goal-tag:hover {
+            background: rgba(139,92,246,0.3);
+            border-color: rgba(139,92,246,0.5);
+        }
+        .goal-tag.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚙️ 设置</h1>
+        <p>配置刷题文件夹和平台账号</p>
+        <div class="header-actions">
+            <a href="/" class="btn">← 返回主页</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- 训练模式设置 -->
+        <div class="section">
+            <h2>🎯 训练模式配置</h2>
+            <div class="form-group">
+                <label>竞赛模式</label>
+                <select id="competition-mode">
+                    <option value="acm">ACM模式（按解题数）</option>
+                    <option value="oi">OI模式（按测试点）</option>
+                </select>
+                <div class="hint">选择你主要参与的竞赛类型，这会影响AI分析策略</div>
+            </div>
+            <div class="form-group">
+                <label>训练模式</label>
+                <select id="training-mode">
+                    <option value="distributed">分散训练（全面发展）</option>
+                    <option value="focused">集中训练（专精突破）</option>
+                </select>
+                <div class="hint">分散：每天1补漏+1巩固+1拔高；集中：专注攻克1-2个薄弱点</div>
+            </div>
+        </div>
+
+        <!-- 用户目标设置 -->
+        <div class="section">
+            <h2>🏆 训练目标</h2>
+            <p style="color: #94a3b8; margin-bottom: 1rem;">设置你的训练目标，AI 会据此精准推荐适合的题目</p>
+            
+            <div class="form-group">
+                <label>目标描述</label>
+                <textarea id="user-goals" rows="3" placeholder="例如：省赛省一、CF Rating 突破 1600、NOIP 提高组一等奖..." style="width:100%;padding:0.8rem 1rem;background:#0f172a;border:1px solid #334155;border-radius:8px;color:#e2e8f0;font-size:0.95rem;resize:vertical;font-family:inherit;"></textarea>
+                <div class="hint">自由描述你的目标，可以写多个，用换行分隔。AI 会理解你的意图来推荐题目。</div>
+            </div>
+            
+            <div class="form-group">
+                <label>快速选择常见目标</label>
+                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem;" id="goal-presets">
+                    <button class="goal-tag" onclick="addGoal('NOIP 普及组一等奖')">NOIP 普及组一等奖</button>
+                    <button class="goal-tag" onclick="addGoal('NOIP 提高组一等奖')">NOIP 提高组一等奖</button>
+                    <button class="goal-tag" onclick="addGoal('省赛省一')">省赛省一</button>
+                    <button class="goal-tag" onclick="addGoal('省赛省二')">省赛省二</button>
+                    <button class="goal-tag" onclick="addGoal('CF Rating 突破 1600')">CF Rating 突破 1600</button>
+                    <button class="goal-tag" onclick="addGoal('CF Rating 突破 2000')">CF Rating 突破 2000</button>
+                    <button class="goal-tag" onclick="addGoal('CF 蓝名')">CF 蓝名</button>
+                    <button class="goal-tag" onclick="addGoal('CF 紫名')">CF 紫名</button>
+                    <button class="goal-tag" onclick="addGoal('AtCoder 橙名')">AtCoder 橙名</button>
+                    <button class="goal-tag" onclick="addGoal('掌握所有基础算法模板')">掌握所有基础算法模板</button>
+                    <button class="goal-tag" onclick="addGoal('系统学习动态规划')">系统学习动态规划</button>
+                    <button class="goal-tag" onclick="addGoal('图论专题突破')">图论专题突破</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>当前水平（供 AI 参考）</label>
+                <select id="current-level">
+                    <option value="beginner">入门（刚开始学算法）</option>
+                    <option value="basic">基础（掌握基本语法和简单算法）</option>
+                    <option value="intermediate" selected>中级（能独立解决普及组题目）</option>
+                    <option value="advanced">进阶（能解决部分提高组题目）</option>
+                    <option value="expert">高手（省选/NOI 水平）</option>
+                </select>
+                <div class="hint">帮助 AI 了解你的当前水平，从而推荐合适难度的题目</div>
+            </div>
+
+            <div class="form-group">
+                <label>目标难度区间</label>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <select id="target-diff-min" style="flex: 1;">
+                        <option value="1">普及- (CF 800)</option>
+                        <option value="2">普及 (CF 1000)</option>
+                        <option value="3">普及+ (CF 1200)</option>
+                        <option value="4" selected>提高 (CF 1400)</option>
+                        <option value="5">提高+ (CF 1500)</option>
+                        <option value="6">省选- (CF 1600)</option>
+                        <option value="7">省选 (CF 1800)</option>
+                        <option value="8">NOI- (CF 2000)</option>
+                        <option value="9">NOI (CF 2200)</option>
+                        <option value="10">NOI+ (CF 2400+)</option>
+                    </select>
+                    <span style="color: #64748b;">至</span>
+                    <select id="target-diff-max" style="flex: 1;">
+                        <option value="1">普及- (CF 800)</option>
+                        <option value="2">普及 (CF 1000)</option>
+                        <option value="3">普及+ (CF 1200)</option>
+                        <option value="4">提高 (CF 1400)</option>
+                        <option value="5">提高+ (CF 1500)</option>
+                        <option value="6">提高++ (CF 1600)</option>
+                        <option value="7" selected>省选 (CF 1800)</option>
+                        <option value="8">NOI- (CF 2000)</option>
+                        <option value="9">NOI (CF 2200)</option>
+                        <option value="10">NOI+ (CF 2400+)</option>
+                    </select>
+                </div>
+                <div class="hint">AI 会优先推荐这个难度区间的题目</div>
+            </div>
+
+            <div class="form-group">
+                <label>重点提升方向</label>
+                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem;" id="focus-tags">
+                    <button class="goal-tag" onclick="toggleFocus('动态规划', this)">动态规划</button>
+                    <button class="goal-tag" onclick="toggleFocus('搜索/DFS/BFS', this)">搜索/DFS/BFS</button>
+                    <button class="goal-tag" onclick="toggleFocus('图论', this)">图论</button>
+                    <button class="goal-tag" onclick="toggleFocus('字符串算法', this)">字符串算法</button>
+                    <button class="goal-tag" onclick="toggleFocus('数学/数论', this)">数学/数论</button>
+                    <button class="goal-tag" onclick="toggleFocus('贪心', this)">贪心</button>
+                    <button class="goal-tag" onclick="toggleFocus('数据结构', this)">数据结构</button>
+                    <button class="goal-tag" onclick="toggleFocus('计算几何', this)">计算几何</button>
+                </div>
+                <input type="hidden" id="focus-areas" value="">
+                <div class="hint">AI 会优先推荐这些知识点的题目（可多选）</div>
+            </div>
+        </div>
+
+        <!-- 候选池设置 -->
+        <div class="section">
+            <h2>📋 AI 候选池设置</h2>
+            <p style="color: #94a3b8; margin-bottom: 1rem;">控制 AI 推荐题目的更新频率</p>
+            
+            <div class="form-group">
+                <label>候选池自动刷新时间</label>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <select id="candidate-reset-hour" style="flex: 1;">
+                        <option value="0">每天 00:00 (凌晨)</option>
+                        <option value="6">每天 06:00 (早上)</option>
+                        <option value="9" selected>每天 09:00 (上午)</option>
+                        <option value="12">每天 12:00 (中午)</option>
+                        <option value="18">每天 18:00 (下午)</option>
+                        <option value="21">每天 21:00 (晚上)</option>
+                    </select>
+                </div>
+                <div class="hint">每天到达指定时间，候选池将自动清空并用 AI 生成新的推荐题目</div>
+            </div>
+
+            <div class="form-group">
+                <label>每次推荐题目数量</label>
+                <select id="candidate-count">
+                    <option value="5">5 道题</option>
+                    <option value="10" selected>10 道题</option>
+                    <option value="15">15 道题</option>
+                    <option value="20">20 道题</option>
+                </select>
+                <div class="hint">每次 AI 生成推荐题目的数量</div>
+            </div>
+        </div>
+
+        <!-- 基本设置 -->
+        <div class="section">
+            <h2>📁 刷题文件夹</h2>
+            <div class="form-group">
+                <label>目标文件夹路径</label>
+                <input type="text" id="target-folder" placeholder="例如: E:/日常刷题">
+                <div class="hint">系统将自动扫描此文件夹中的 .cpp 文件</div>
+            </div>
+        </div>
+
+        <!-- 平台账号 -->
+        <div class="section">
+            <h2>🌐 平台账号</h2>
+            <p style="color: #94a3b8; margin-bottom: 1.5rem;">设置各平台的用户名后，点击"获取进度"按钮即可自动同步数据</p>
+            
+            <div class="platform-grid">
+                <div class="platform-item">
+                    <h3>🏛️ 洛谷</h3>
+                    <input type="text" id="luogu-username" placeholder="洛谷用户名">
+                    <div class="hint">访问 luogu.com.cn 查看你的用户名（URL 中的用户名）</div>
+                </div>
+
+                <div class="platform-item">
+                    <h3>🔵 Codeforces</h3>
+                    <input type="text" id="cf-username" placeholder="CF Handle">
+                    <div class="hint">访问 codeforces.com 查看你的 Handle（右上角用户名）</div>
+                </div>
+
+                <div class="platform-item">
+                    <h3>🔴 AtCoder</h3>
+                    <input type="text" id="ac-username" placeholder="用户名">
+                    <div class="hint">访问 atcoder.jp 查看用户名</div>
+                </div>
+
+                <div class="platform-item">
+                    <h3>🟣 牛客</h3>
+                    <input type="text" id="nowcoder-username" placeholder="用户ID或昵称" style="margin-bottom: 0.8rem;">
+                    <input type="password" id="nowcoder-cookie" placeholder="Cookie（可选，用于获取完整数据）">
+                    <div class="hint">从浏览器F12 -> Network -> 复制Cookie（可选）</div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;" onclick="saveConfig()">💾 保存配置</button>
+            <button class="btn" style="margin-top: 0.8rem; width: 100%;" onclick="fetchProgress()">📊 获取平台进度</button>
+        </div>
+        
+        <!-- 进度展示 -->
+        <div class="section" id="progress-section" style="display: none;">
+            <h2>📈 平台刷题进度</h2>
+
+            <div class="progress-cards" id="progress-cards">
+                <!-- 动态生成 -->
+            </div>
+
+            <div id="platform-details" style="margin-top: 1.5rem;">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+
+        <!-- 平台同步 -->
+        <div class="section">
+            <h2>🔄 平台数据同步</h2>
+            <p style="color: #94a3b8; margin-bottom: 1.5rem;">
+                增量同步：自动跳过已保存的题目，只获取新增的刷题记录<br>
+                <span style="color: #64748b; font-size: 0.85rem;">
+                    💡 推荐定期使用增量同步，全量同步会重新获取所有数据（耗时较长）
+                </span>
+            </p>
+
+            <div id="sync-status" style="margin-bottom: 1.5rem;">
+                <!-- 动态生成同步状态 -->
+            </div>
+
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="syncPlatform('all', false)" style="flex: 1; padding: 1rem;">
+                    ⚡ 增量同步
+                </button>
+                <button class="btn" onclick="syncPlatform('all', true)" style="flex: 1; padding: 1rem;">
+                    🔁 全量同步
+                </button>
+            </div>
+            <div class="hint" style="margin-top: 0.5rem;">全量同步会重新获取所有题目，建议仅在数据异常时使用</div>
+
+            <div id="sync-result" style="margin-top: 1.5rem; display: none;">
+                <div class="platform-detail" id="sync-result-detail"></div>
+            </div>
+        </div>
+
+        <!-- AI 设置 -->
+        <div class="section">
+            <h2>🤖 AI 设置</h2>
+            <div class="form-group">
+                <label>DeepSeek API Key</label>
+                <input type="password" id="api-key" placeholder="sk-xxx">
+                <div class="hint">用于生成学习建议，不会泄露</div>
+            </div>
+        </div>
+
+        <!-- 数据备份 -->
+        <div class="section">
+            <h2>💾 数据备份</h2>
+            <p style="color: #94a3b8; margin-bottom: 1.5rem;">
+                自动备份数据库，防止数据丢失。建议定期备份重要数据。
+            </p>
+
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                <button class="btn btn-primary" onclick="createBackup()" style="flex: 1; padding: 1rem;">
+                    📦 创建备份
+                </button>
+                <button class="btn" onclick="loadBackups()" style="flex: 1; padding: 1rem;">
+                    📋 查看备份列表
+                </button>
+            </div>
+
+            <div id="backup-result" style="margin-top: 1rem;"></div>
+            <div id="backup-list" style="margin-top: 1rem;"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 加载配置
+        async function loadConfig() {
+            const resp = await fetch('/api/config');
+            const config = await resp.json();
+
+            if (config.target_folder) {
+                document.getElementById('target-folder').value = config.target_folder;
+            }
+
+            if (config.competition_mode) {
+                document.getElementById('competition-mode').value = config.competition_mode;
+            }
+
+            if (config.training_mode) {
+                document.getElementById('training-mode').value = config.training_mode;
+            }
+
+            if (config.platform_accounts) {
+                document.getElementById('luogu-username').value = config.platform_accounts.luogu || '';
+                document.getElementById('cf-username').value = config.platform_accounts.codeforces || '';
+                document.getElementById('ac-username').value = config.platform_accounts.atcoder || '';
+                document.getElementById('nowcoder-username').value = config.platform_accounts.nowcoder || '';
+            }
+
+            if (config.deepseek_api_key) {
+                document.getElementById('api-key').value = config.deepseek_api_key;
+            }
+
+            // 加载用户目标
+            if (config.user_goals) {
+                document.getElementById('user-goals').value = config.user_goals;
+                // 高亮已选中的预设标签
+                updateGoalTagStates(config.user_goals);
+            }
+            if (config.current_level) {
+                document.getElementById('current-level').value = config.current_level;
+            }
+            // 加载目标难度区间
+            if (config.target_difficulty_min) {
+                document.getElementById('target-diff-min').value = config.target_difficulty_min;
+            }
+            if (config.target_difficulty_max) {
+                document.getElementById('target-diff-max').value = config.target_difficulty_max;
+            }
+            // 加载重点提升方向
+            if (config.focus_areas && config.focus_areas.length > 0) {
+                document.getElementById('focus-areas').value = config.focus_areas.join(',');
+                // 高亮对应的按钮
+                config.focus_areas.forEach(area => {
+                    document.querySelectorAll('#focus-tags .goal-tag').forEach(btn => {
+                        if (btn.textContent === area) {
+                            btn.classList.add('active');
+                        }
+                    });
+                });
+            }
+            // 加载候选池设置
+            if (config.candidate_reset_hour !== undefined) {
+                document.getElementById('candidate-reset-hour').value = config.candidate_reset_hour;
+            }
+            if (config.candidate_count !== undefined) {
+                document.getElementById('candidate-count').value = config.candidate_count;
+            }
+        }
+
+        // 添加目标到文本框
+        function addGoal(goalText) {
+            const textarea = document.getElementById('user-goals');
+            const existing = textarea.value.trim();
+            if (existing && !existing.includes(goalText)) {
+                textarea.value = existing + '\n' + goalText;
+            } else if (!existing) {
+                textarea.value = goalText;
+            }
+            updateGoalTagStates(textarea.value);
+        }
+
+        // 更新预设标签的选中状态
+        function updateGoalTagStates(goalsText) {
+            const tags = document.querySelectorAll('.goal-tag');
+            tags.forEach(tag => {
+                if (goalsText.includes(tag.textContent)) {
+                    tag.classList.add('active');
+                } else {
+                    tag.classList.remove('active');
+                }
+            });
+        }
+
+        // 监听目标文本框变化，同步标签状态
+        document.getElementById('user-goals').addEventListener('input', function() {
+            updateGoalTagStates(this.value);
+        });
+
+        // 切换重点提升方向
+        function toggleFocus(area, btn) {
+            btn.classList.toggle('active');
+            const hidden = document.getElementById('focus-areas');
+            let areas = hidden.value ? hidden.value.split(',') : [];
+            if (areas.includes(area)) {
+                areas = areas.filter(a => a !== area);
+            } else {
+                areas.push(area);
+            }
+            hidden.value = areas.join(',');
+        }
+
+        // 保存配置
+        async function saveConfig() {
+            // 解析用户目标（按行分割，过滤空行）
+            const goalsRaw = document.getElementById('user-goals').value.trim();
+            const goals = goalsRaw ? goalsRaw.split('\n').map(g => g.trim()).filter(g => g) : [];
+
+            // 获取重点提升方向
+            const focusAreasRaw = document.getElementById('focus-areas').value;
+            const focusAreas = focusAreasRaw ? focusAreasRaw.split(',').filter(a => a) : [];
+
+            const config = {
+                competition_mode: document.getElementById('competition-mode').value,
+                training_mode: document.getElementById('training-mode').value,
+                target_folder: document.getElementById('target-folder').value,
+                user_goals: goalsRaw,  // 保存原始文本
+                current_level: document.getElementById('current-level').value,
+                target_difficulty_min: parseInt(document.getElementById('target-diff-min').value),
+                target_difficulty_max: parseInt(document.getElementById('target-diff-max').value),
+                focus_areas: focusAreas,
+                // 候选池设置
+                candidate_reset_hour: parseInt(document.getElementById('candidate-reset-hour').value),
+                candidate_count: parseInt(document.getElementById('candidate-count').value),
+                platform_accounts: {
+                    luogu: document.getElementById('luogu-username').value,
+                    codeforces: document.getElementById('cf-username').value,
+                    atcoder: document.getElementById('ac-username').value,
+                    nowcoder: document.getElementById('nowcoder-username').value,
+                },
+                platform_cookies: {
+                    nowcoder: document.getElementById('nowcoder-cookie').value || '',
+                },
+                deepseek_api_key: document.getElementById('api-key').value,
+            };
+
+            const resp = await fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+
+            if ((await resp.json()).success) {
+                alert('✅ 配置已保存');
+            }
+        }
+        
+        // 获取平台进度
+        async function fetchProgress() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = '⏳ 获取中...';
+            
+            try {
+                const resp = await fetch('/api/platform-progress');
+                const data = await resp.json();
+                
+                document.getElementById('progress-section').style.display = 'block';
+                
+                // 统计卡片
+                const cardsHTML = `
+                    <div class="progress-card">
+                        <div class="number">${data.total_solved || 0}</div>
+                        <div class="label">总通过题数</div>
+                    </div>
+                    <div class="progress-card">
+                        <div class="number">${Object.keys(data.platforms).length}</div>
+                        <div class="label">已连接平台</div>
+                    </div>
+                    <div class="progress-card">
+                        <div class="number">🔄</div>
+                        <div class="label">${data.fetched_at?.split('T')[0] || '今天'}</div>
+                    </div>
+                `;
+                document.getElementById('progress-cards').innerHTML = cardsHTML;
+                
+                // 平台详情
+                let detailsHTML = '';
+                for (const [platform, info] of Object.entries(data.platforms)) {
+                    const nameMap = {
+                        'luogu': '🏛️ 洛谷',
+                        'codeforces': '🔵 Codeforces',
+                        'atcoder': '🔴 AtCoder',
+                        'nowcoder': '🟣 牛客'
+                    };
+
+                    if (info.error) {
+                        detailsHTML += `
+                            <div class="platform-detail">
+                                <h4>${nameMap[platform]}</h4>
+                                <p class="error">❌ ${info.error}</p>
+                            </div>
+                        `;
+                    } else {
+                        let details = '';
+
+                        // 洛谷数据
+                        if (platform === 'luogu') {
+                            details = `
+                                用户名: <strong>${info.username || ''}</strong> |
+                                Rating: <strong>${info.rating || 0}</strong> (${info.rank || 'Newbie'}) |
+                                通过: <strong>${info.solved_count || 0}</strong> 题 |
+                                提交: <strong>${info.submission_count || 0}</strong> 次
+                            `;
+                        }
+                        // Codeforces 数据
+                        else if (platform === 'codeforces') {
+                            details = `
+                                Handle: <strong>${info.handle || ''}</strong> |
+                                Rating: <strong>${info.rating || 0}</strong> (${info.rank || 'unrated'}) |
+                                最高: <strong>${info.max_rating || 0}</strong> |
+                                通过: <strong>${info.solved_count || 0}</strong> 题
+                            `;
+                        }
+                        // AtCoder 数据
+                        else if (platform === 'atcoder') {
+                            details = `
+                                用户名: <strong>${info.username || ''}</strong> |
+                                Rating: <strong>${info.rating || 0}</strong> (${info.rank || 'unrated'})
+                            `;
+                        }
+                        // 牛客数据
+                        else if (platform === 'nowcoder') {
+                            // 统一字段名
+                            const solved_count = info.ac_count || info.solved_count || 0;
+                            details = `
+                                用户ID: <strong>${info.username || ''}</strong> |
+                                AC: <strong>${solved_count}</strong> 题
+                                ${info.source ? `<br><small style="color: #94a3b8">来源: ${info.source === 'ac_site' ? '牛客竞赛' : '牛客主站'}</small>` : ''}
+                            `;
+                        }
+
+                        detailsHTML += `
+                            <div class="platform-detail">
+                                <h4>${nameMap[platform]}</h4>
+                                <p>${details}</p>
+                            </div>
+                        `;
+                    }
+                }
+                document.getElementById('platform-details').innerHTML = detailsHTML;
+
+            } catch (e) {
+                alert('❌ 获取失败: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📊 获取平台进度';
+            }
+        }
+
+        // 加载同步状态
+        async function loadSyncStatus() {
+            try {
+                const resp = await fetch('/api/platform/sync-status');
+                const data = await resp.json();
+
+                if (!data.success) {
+                    document.getElementById('sync-status').innerHTML = '<p style="color: #64748b;">加载同步状态失败</p>';
+                    return;
+                }
+
+                const stats = data.stats;
+                const history = data.history || [];
+
+                let statusHTML = '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem;">';
+
+                // 洛谷
+                const lgStats = stats['luogu'] || {};
+                const lgLastSync = lgStats.last_sync?.finished_at?.split('T')[0] || '从未同步';
+                statusHTML += `
+                    <div class="platform-detail">
+                        <h4>🏛️ 洛谷</h4>
+                        <p>已保存: <strong>${lgStats.count || 0}</strong> 道题</p>
+                        <p>上次同步: <strong>${lgLastSync}</strong></p>
+                    </div>
+                `;
+
+                // Codeforces
+                const cfStats = stats['codeforces'] || {};
+                const cfLastSync = cfStats.last_sync?.finished_at?.split('T')[0] || '从未同步';
+                statusHTML += `
+                    <div class="platform-detail">
+                        <h4>🔵 Codeforces</h4>
+                        <p>已保存: <strong>${cfStats.count || 0}</strong> 道题</p>
+                        <p>上次同步: <strong>${cfLastSync}</strong></p>
+                    </div>
+                `;
+
+                statusHTML += '</div>';
+
+                // 最近同步历史
+                if (history.length > 0) {
+                    statusHTML += '<p style="color: #94a3b8; margin-bottom: 0.5rem;">最近同步记录:</p>';
+                    statusHTML += '<div style="font-size: 0.85rem; color: #64748b;">';
+                    history.slice(0, 3).forEach(h => {
+                        const time = h.finished_at?.split('T')[0] || h.started_at?.split('T')[0] || '未知';
+                        const icon = h.status === 'success' ? '✅' : '❌';
+                        statusHTML += `${icon} ${h.platform} - ${h.sync_type} - ${time} (+${h.problems_added}, ~${h.problems_skipped})<br>`;
+                    });
+                    statusHTML += '</div>';
+                }
+
+                document.getElementById('sync-status').innerHTML = statusHTML;
+            } catch (e) {
+                console.error('加载同步状态失败:', e);
+            }
+        }
+
+        // 同步平台数据
+        async function syncPlatform(platform, isFull) {
+            const type = isFull ? '全量' : '增量';
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = `⏳ ${type}同步中...`;
+
+            const resultDiv = document.getElementById('sync-result');
+            const resultDetail = document.getElementById('sync-result-detail');
+            resultDiv.style.display = 'none';
+
+            try {
+                const resp = await fetch('/api/platform/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ platform, force: isFull })
+                });
+
+                const data = await resp.json();
+
+                if (data.success) {
+                    let resultHTML = '<h4>✅ 同步完成</h4>';
+                    resultHTML += `<p style="color: #94a3b8;">${data.summary}</p>`;
+
+                    data.results.forEach(r => {
+                        if (r.success) {
+                            const typeIcon = r.sync_type === 'incremental' ? '⚡' : '🔁';
+                            resultHTML += `<p>${typeIcon} <strong>${r.platform}</strong>: 获取 ${r.fetched} 题，新增 ${r.added} 题，跳过 ${r.skipped || 0} 题</p>`;
+                        } else {
+                            resultHTML += `<p style="color: #f87171;">❌ <strong>${r.platform}</strong>: ${r.message}</p>`;
+                        }
+                    });
+
+                    resultDetail.innerHTML = resultHTML;
+                    resultDiv.style.display = 'block';
+
+                    // 刷新同步状态
+                    loadSyncStatus();
+                } else {
+                    resultDetail.innerHTML = `<h4 style="color: #f87171;">❌ 同步失败</h4><p>${data.error}</p>`;
+                    resultDiv.style.display = 'block';
+                }
+            } catch (e) {
+                resultDetail.innerHTML = `<h4 style="color: #f87171;">❌ 同步失败</h4><p>${e.message}</p>`;
+                resultDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = `⚡ ${type}同步`;
+            }
+        }
+
+        // ==================== 数据备份功能 ====================
+
+        // 创建备份
+        async function createBackup() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = '⏳ 备份中...';
+            const resultDiv = document.getElementById('backup-result');
+
+            try {
+                const resp = await fetch('/api/backup/create', { method: 'POST' });
+                const data = await resp.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `<div style="background: #1a2937; padding: 1rem; border-radius: 8px; border-left: 4px solid #10b981;">
+                        <h4 style="color: #10b981; margin: 0 0 0.5rem;">✅ 备份创建成功</h4>
+                        <p style="color: #94a3b8; margin: 0; font-size: 0.85rem;">
+                            备份时间: ${new Date(data.created_at).toLocaleString('zh-CN')}<br>
+                            数据库大小: ${(data.db_size / 1024).toFixed(1)} KB<br>
+                            各表记录数: 题目 ${data.tables.problems || 0} | 平台题目 ${data.tables.platform_problems || 0} | 候选池 ${data.tables.candidate_pool || 0}
+                        </p>
+                    </div>`;
+                    loadBackups(); // 刷新备份列表
+                } else {
+                    resultDiv.innerHTML = `<div style="color: #f87171;">❌ 备份失败: ${data.error}</div>`;
+                }
+            } catch (e) {
+                resultDiv.innerHTML = `<div style="color: #f87171;">❌ 备份失败: ${e.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📦 创建备份';
+            }
+        }
+
+        // 加载备份列表
+        async function loadBackups() {
+            const listDiv = document.getElementById('backup-list');
+
+            try {
+                const resp = await fetch('/api/backup/list');
+                const data = await resp.json();
+
+                if (data.success && data.backups.length > 0) {
+                    let html = '<h4 style="color: #e2e8f0; margin: 1rem 0 0.5rem;">📋 备份列表</h4>';
+                    html += '<div style="max-height: 300px; overflow-y: auto;">';
+                    data.backups.forEach(b => {
+                        const date = new Date(b.created_at).toLocaleString('zh-CN');
+                        const sizeKB = (b.db_size / 1024).toFixed(1);
+                        html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: #1a2937; border-radius: 6px; margin-bottom: 0.5rem;">
+                            <div>
+                                <strong style="color: #e2e8f0;">${b.name}</strong>
+                                <div style="color: #64748b; font-size: 0.8rem;">
+                                    ${date} | ${sizeKB} KB | 题目 ${b.tables.problems || 0}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-small" onclick="confirmRestore('${b.name}')" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">🔄 恢复</button>
+                                <button class="btn btn-small" onclick="deleteBackup('${b.name}')" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; background: #7f1d1d;">🗑️</button>
+                            </div>
+                        </div>`;
+                    });
+                    html += '</div>';
+                    listDiv.innerHTML = html;
+                } else {
+                    listDiv.innerHTML = '<p style="color: #64748b;">暂无备份记录</p>';
+                }
+            } catch (e) {
+                listDiv.innerHTML = `<p style="color: #f87171;">加载备份列表失败: ${e.message}</p>`;
+            }
+        }
+
+        // 确认恢复
+        function confirmRestore(name) {
+            if (confirm(`⚠️ 确定要恢复备份 "${name}" 吗？\n\n恢复前会先自动备份当前数据。`)) {
+                restoreBackup(name);
+            }
+        }
+
+        // 执行恢复
+        async function restoreBackup(name) {
+            const resultDiv = document.getElementById('backup-result');
+
+            try {
+                const resp = await fetch('/api/backup/restore', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                const data = await resp.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `<div style="background: #1a2937; padding: 1rem; border-radius: 8px; border-left: 4px solid #10b981;">
+                        <h4 style="color: #10b981; margin: 0;">✅ ${data.message}</h4>
+                        <p style="color: #64748b; margin: 0.5rem 0 0; font-size: 0.85rem;">
+                            恢复前的数据已备份到: ${data.pre_restore_backup}
+                        </p>
+                    </div>`;
+                    loadBackups();
+                } else {
+                    resultDiv.innerHTML = `<div style="color: #f87171;">❌ 恢复失败: ${data.error}</div>`;
+                }
+            } catch (e) {
+                resultDiv.innerHTML = `<div style="color: #f87171;">❌ 恢复失败: ${e.message}</div>`;
+            }
+        }
+
+        // 删除备份
+        async function deleteBackup(name) {
+            if (!confirm(`确定要删除备份 "${name}" 吗？此操作不可恢复。`)) {
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/backup/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                const data = await resp.json();
+
+                if (data.success) {
+                    loadBackups();
+                } else {
+                    alert('删除失败: ' + data.error);
+                }
+            } catch (e) {
+                alert('删除失败: ' + e.message);
+            }
+        }
+
+        // 初始化
+        loadConfig();
+        loadSyncStatus();
+    </script>
+</body>
+</html>

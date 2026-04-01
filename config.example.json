@@ -1,0 +1,15 @@
+{
+    "deepseek_api_key": "",
+    "target_folder": "",
+    "platform_accounts": {
+        "luogu": "",
+        "codeforces": "",
+        "atcoder": "",
+        "nowcoder": ""
+    },
+    "user_info": {
+        "name": "",
+        "school": "",
+        "grade": ""
+    }
+}
