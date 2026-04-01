@@ -30,6 +30,12 @@ config.json
 .DS_Store
 Thumbs.db
 
+# Windows
+*.bat
+*.lnk
+*.lnk.*
+启动*.bat
+
 # Reports
 report*.html
 *.pdf
