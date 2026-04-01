@@ -348,12 +348,12 @@ def _normalize_difficulty(difficulty: float, platform: str) -> int:
     platform = platform.lower()
 
     if 'luogu' in platform or 'lg' in platform:
-        # 洛谷难度 1-7 → 1-10: 1→1, 2→3, 3→4, 4→6, 5→7, 6→9, 7→10
-        luogu_map = {1: 1, 2: 3, 3: 4, 4: 6, 5: 7, 6: 9, 7: 10}
+        # 洛谷难度 → 1-10 标准难度
+        # 入门(1)→1, 普及-(2)→2, 普及/(3)→3, 普及+(4)→4, 提高(5)→5, 提高+(6)→6, 省选(7)→7, NOI(8)→8, NOI+(9)→10
+        luogu_map = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 10}
         if difficulty in luogu_map:
             return luogu_map[difficulty]
-        # 如果是 1-7 范围外，按比例映射
-        return max(1, min(10, round(difficulty * 1.43)))
+        return max(1, min(10, difficulty))
 
     elif 'cf' in platform or 'codeforces' in platform:
         # CF rating → 1-10

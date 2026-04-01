@@ -35,10 +35,10 @@ class PlatformFetcher:
             return 5  # 未知难度默认为中等
         
         if platform == 'luogu':
-            # 洛谷难度 1-7 → 1-10: 1→1, 2→3, 3→4, 4→6, 5→7, 6→9, 7→10
-            # 映射表
-            luogu_map = {1: 1, 2: 3, 3: 4, 4: 6, 5: 7, 6: 9, 7: 10}
-            return luogu_map.get(difficulty, max(1, min(10, round(difficulty * 1.43))))
+            # 洛谷难度 → 1-10 标准难度
+            # 入门(1)→1, 普及-(2)→2, 普及/(3)→3, 普及+(4)→4, 提高(5)→5, 提高+(6)→6, 省选(7)→7, NOI(8)→8, NOI+(9)→10
+            luogu_map = {1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 10}
+            return luogu_map.get(difficulty, max(1, min(10, difficulty)))
         
         elif platform == 'codeforces':
             # Codeforces rating → 1-10: 800→3, 1000→4, 1200→5, 1400→6, ...
