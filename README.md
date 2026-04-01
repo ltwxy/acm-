@@ -55,13 +55,41 @@ pip install -r requirements.txt
 ```
 
 ### 启动方式
+
+**方式一：Web 面板模式（推荐）**
 ```bash
-python main.py web    # 启动 Web 面板
-python main.py watch  # 启动文件监控
-python main.py scan   # 扫描本地文件
-python main.py init   # 初始化数据库
+python main.py init    # 首次运行，初始化数据库
+python main.py web     # 启动 Web 面板
 ```
-访问 http://localhost:5000
+然后访问 http://localhost:5000
+
+**方式二：命令行模式**
+```bash
+python main.py scan    # 扫描本地刷题文件
+python main.py watch   # 启动文件监控（自动扫描新增文件）
+python main.py report  # 生成学习报告
+```
+
+### 首次配置
+
+1. 复制配置文件：
+   ```bash
+   cp config.example.json config.json
+   ```
+
+2. 编辑 `config.json`，填入你的配置：
+   ```json
+   {
+       "target_folder": "E:/你的刷题文件夹",
+       "deepseek_api_key": "sk-你的API密钥",
+       "platform_accounts": {
+           "luogu": "你的洛谷用户名",
+           "codeforces": "你的CF Handle"
+       }
+   }
+   ```
+
+3. 获取 DeepSeek API Key：访问 https://platform.deepseek.com 注册获取
 
 ---
 
@@ -214,6 +242,41 @@ python scripts/system_check.py
 | 8 | NOI | 2400/2500 | - |
 | 9 | NOI+ | 2600+ | - |
 | 10 | - | 2800+ | - |
+
+---
+
+## 安装部署
+
+### 快速安装
+
+```bash
+# 克隆项目
+git clone https://github.com/ltwxy/acm-.git
+cd acm-
+
+# 安装依赖
+pip install -r requirements.txt
+
+# 配置
+cp config.example.json config.json
+# 编辑 config.json 填入你的信息
+
+# 启动
+python main.py init
+python main.py web
+```
+
+### 目录结构要求
+
+确保你的刷题文件夹中的 `.cpp` 文件遵循命名规范：
+
+| 平台 | 命名示例 |
+|------|----------|
+| 洛谷 | `P1001_A+BProblem.cpp`, `B3626_跳跃机器人.cpp` |
+| Codeforces | `CF1822A.cpp`, `CF1690C_ShoeShuffling.cpp` |
+| AtCoder | `AT_abc301_a.cpp` |
+| 牛客 | `NC12345.cpp` |
+| USACO | `USACO_bronze_xxx.cpp` |
 
 ---
 
